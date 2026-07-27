@@ -13,3 +13,7 @@ public/gallery-generated/
 # Wrangler local dev (functions/order.js) — secrets and local KV/state.
 .dev.vars
 .wrangler/
+
+.dev.vars*
+!.dev.vars.example
+!.env.example

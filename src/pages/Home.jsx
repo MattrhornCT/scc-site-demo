@@ -1,5 +1,6 @@
 import logo from '../assets/logo.png';
 import logoBlack from '../assets/logo-black.svg';
+import { getRecentPhotos } from '../gallery/loadGallery.js';
 
 const SHOW_MARQUEE = true;
 
@@ -10,11 +11,7 @@ const steps = [
   { n: 4, title: 'Pickup or delivery', body: 'GTA pickup or local delivery.' },
 ];
 
-const previewCards = [
-  { label: 'wedding set' },
-  { label: 'baby shower' },
-  { label: 'corporate gift' },
-];
+const recentPhotos = getRecentPhotos(3);
 
 export default function Home({ goOrder, goGallery }) {
   return (
@@ -80,9 +77,10 @@ export default function Home({ goOrder, goGallery }) {
             <button onClick={goGallery} style={{ cursor: 'pointer', background: 'none', border: 'none', font: "600 14px 'Hanken Grotesk'", color: '#a86a3e' }}>Full gallery →</button>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
-            {previewCards.map((c) => (
-              <div key={c.label} className="gcard" onClick={goGallery} style={{ cursor: 'pointer', aspectRatio: '1', borderRadius: 24, background: '#f3e6de', backgroundImage: 'repeating-linear-gradient(135deg,rgba(74,53,46,.04) 0 14px,transparent 14px 28px)', display: 'flex', alignItems: 'flex-end', padding: 14, boxShadow: '0 12px 26px -20px rgba(74,53,46,.5)' }}>
-                <span style={{ font: "600 10px ui-monospace,Menlo,monospace", color: '#a89482', background: '#fbf4ee', padding: '5px 8px', borderRadius: 6 }}>{c.label}</span>
+            {recentPhotos.map((photo) => (
+              <div key={photo.id} className="gcard" onClick={goGallery} style={{ cursor: 'pointer', aspectRatio: '1', borderRadius: 24, overflow: 'hidden', position: 'relative', background: '#f3e6de', boxShadow: '0 12px 26px -20px rgba(74,53,46,.5)' }}>
+                <img src={photo.src} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <span style={{ position: 'absolute', left: 14, bottom: 14, font: "600 10px ui-monospace,Menlo,monospace", color: '#a89482', background: '#fbf4ee', padding: '5px 8px', borderRadius: 6 }}>{photo.label}</span>
               </div>
             ))}
           </div>

@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// Project is served from https://mattrhornct.github.io/scc-site-demo/ on GitHub Pages,
-// so all built asset URLs need the repo name as a base path.
+// Served from Cloudflare Pages at the root of its own *.pages.dev subdomain
+// (no repo-name subpath, unlike the old GitHub Pages project-site setup).
 export default defineConfig({
-  base: '/scc-site-demo/',
+  base: '/',
   plugins: [react()],
 });

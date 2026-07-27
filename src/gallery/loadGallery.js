@@ -1,66 +1,15 @@
-// Occasion comes from the folder a photo lives in (src/gallery-images/<occasion>/photo.jpg).
-// Every other filter group is derived dynamically from whichever columns exist in
-// manifest.csv, so adding a new column there (e.g. "shape") automatically creates a
-// new filter group with no code changes. A photo with no manifest row still shows up,
-// just without those extra tags.
-
-const imageModules = import.meta.glob(
-  '../gallery-images/*/*.{jpg,jpeg,png,webp,gif,svg,JPG,JPEG,PNG,WEBP,GIF,SVG}',
-  { eager: true, import: 'default' }
-);
-const manifestModules = import.meta.glob('../gallery-images/manifest.csv', {
-  eager: true,
-  query: '?raw',
-  import: 'default',
-});
-
-function parseCsv(text) {
-  const rows = [];
-  let row = [];
-  let field = '';
-  let inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') { field += '"'; i++; } else { inQuotes = false; }
-      } else field += c;
-    } else if (c === '"') {
-      inQuotes = true;
-    } else if (c === ',') {
-      row.push(field); field = '';
-    } else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i++;
-      row.push(field); field = '';
-      if (row.some((v) => v !== '')) rows.push(row);
-      row = [];
-    } else {
-      field += c;
-    }
-  }
-  if (field !== '' || row.length) {
-    row.push(field);
-    if (row.some((v) => v !== '')) rows.push(row);
-  }
-  if (!rows.length) return [];
-  const header = rows[0].map((h) => h.trim());
-  return rows.slice(1).map((r) => {
-    const obj = {};
-    header.forEach((h, i) => { obj[h] = (r[i] || '').trim(); });
-    return obj;
-  });
-}
+// Gallery data comes from Airtable's `Gallery` table (see
+// scc-site-update-brief.md, Phase 2), fetched and image-processed at build
+// time by scripts/fetch-airtable.mjs into src/data/gallery.generated.json —
+// never at runtime, so the Airtable token never ships to the browser.
+//
+// Filter groups (Occasion/Theme/Colour) are derived from whichever values
+// are actually present across active photos, so adding a new Theme value in
+// Airtable creates a new filter chip with no code change.
+import photosData from '../data/gallery.generated.json';
 
 function titleCase(s) {
   return s.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function labelFromFilename(filename) {
-  return titleCase(filename.replace(/\.[^.]+$/, ''));
-}
-
-function splitValues(cell) {
-  return (cell || '').split('|').map((v) => v.trim()).filter(Boolean);
 }
 
 let colorProbe;
@@ -77,47 +26,29 @@ export function isColorGroup(key) {
   return k === 'colour' || k === 'color';
 }
 
-function readManifestRows() {
-  const path = Object.keys(manifestModules)[0];
-  const raw = path ? manifestModules[path] : '';
-  return parseCsv(raw || '');
-}
+const PROPERTY_KEYS = ['occasion', 'theme', 'colour'];
 
 export function loadGallery() {
-  const manifestRows = readManifestRows();
-
-  const manifestByFilename = new Map();
-  manifestRows.forEach((row) => {
-    if (row.filename) manifestByFilename.set(row.filename.toLowerCase(), row);
-  });
-
-  const manifestColumns = manifestRows.length
-    ? Object.keys(manifestRows[0]).filter((k) => !['filename', 'label'].includes(k.toLowerCase()))
-    : [];
-
-  const photos = Object.keys(imageModules).map((path) => {
-    const parts = path.split('/');
-    const occasion = parts[parts.length - 2];
-    const filename = parts[parts.length - 1];
-    const manifestRow = manifestByFilename.get(filename.toLowerCase()) || {};
-
-    const properties = { occasion: [occasion] };
-    manifestColumns.forEach((col) => {
-      const values = splitValues(manifestRow[col]);
-      if (values.length) properties[col] = values;
+  const photos = photosData.map((p) => {
+    const properties = {};
+    PROPERTY_KEYS.forEach((key) => {
+      if (p[key] && p[key].length) properties[key] = p[key];
     });
+    const imageEntries = Object.entries(p.images || {});
+    const src = (p.images && p.images['800']) || (imageEntries[0] && imageEntries[0][1]) || '';
 
     return {
-      id: path,
-      src: imageModules[path],
-      occasion,
-      label: (manifestRow.label && manifestRow.label.trim()) || labelFromFilename(filename),
+      id: p.id,
+      src,
+      occasion: (p.occasion && p.occasion[0]) || '',
+      label: p.title || '',
       properties,
+      featured: !!p.featured,
+      sortOrder: typeof p.sortOrder === 'number' ? p.sortOrder : null,
     };
   }).sort((a, b) => a.label.localeCompare(b.label));
 
-  const groupOrder = ['occasion', ...manifestColumns];
-  const groups = groupOrder
+  const groups = PROPERTY_KEYS
     .map((key) => {
       const seen = new Map();
       photos.forEach((p) => {
@@ -136,6 +67,17 @@ export function loadGallery() {
     .filter(Boolean);
 
   return { photos, groups };
+}
+
+// Featured photos, manually ordered by Sort Order (blank sorts last) — set
+// directly in Airtable, replacing the old "most recently committed" ranking.
+export function getRecentPhotos(n = 3) {
+  const { photos } = loadGallery();
+  return photos
+    .filter((p) => p.featured)
+    .slice()
+    .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity))
+    .slice(0, n);
 }
 
 export function photoMatchesFilters(photo, activeFilters) {

@@ -1,0 +1,13 @@
+Key,Label,Amount,Unit,Min Quantity,Max Quantity,Active,Notes
+cookies_base_dozen,Base dozen,80,per dozen,,,checked,base price/dozen for hand-iced cookies
+shape_custom_surcharge,Custom shape surcharge,1,per dozen,,,checked,custom cutter shape
+colour_extra_each,Extra icing colour,4,per dozen,,,checked,per icing colour beyond 3 included
+deco_printed_adjustment,Printed decoration adjustment,-5,per dozen,,,checked,printed vs hand-iced price delta (currently a discount)
+small_batch_fee,Small batch fee,5,per order,,,checked,applies when the order has under 2 dozen cookies
+pebbles_small,Cookie Pebbles - Small,15,per item,,,checked,"36 pieces, 1 dip included"
+pebbles_medium,Cookie Pebbles - Medium,20,per item,,,checked,"72 pieces, 2 dips included"
+pebbles_large,Cookie Pebbles - Large,25,per item,,,checked,"108 pieces, 3 dips included"
+pebbles_extra_dip,Extra dip,3,per dip,,,checked,beyond the included count
+gifting_tier_1,Branded gifting tier 1,95,per dozen,4,8,checked,future use - not read by the site yet
+gifting_tier_2,Branded gifting tier 2,85,per dozen,9,15,checked,future use - not read by the site yet
+gifting_tier_3,Branded gifting tier 3,75,per dozen,16,,checked,future use - not read by the site yet

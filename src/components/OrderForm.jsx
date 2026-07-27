@@ -1,19 +1,30 @@
 import { useEffect, useRef, useState } from 'react';
-import { APPS_SCRIPT_URL } from '../config.js';
+import { OWNER_EMAIL } from '../config.js';
+import { price } from '../data/pricing.js';
 import logo from '../assets/logo.png';
 import logoBlack from '../assets/logo-black.svg';
 
-const DOZEN = 80;
+// Every dollar amount here comes from Airtable's Pricing table (fetched at
+// build time — see scripts/fetch-airtable.mjs) instead of being hardcoded,
+// so a price change needs no code change. Non-priced facts (dip flavours,
+// included-dip counts, shape names) stay as plain constants.
+const DOZEN = price('cookies_base_dozen');
+const SHAPE_CUSTOM_SURCHARGE = price('shape_custom_surcharge');
+const COLOUR_EXTRA_EACH = price('colour_extra_each');
+const DECO_PRINTED_ADJUSTMENT = price('deco_printed_adjustment');
+const SMALL_BATCH_FEE = price('small_batch_fee');
+const PEBBLE_EXTRA_DIP = price('pebbles_extra_dip');
+
 const DIPS = ['White Chocolate', 'Milk Chocolate', 'Dark Chocolate', 'Dulce de Leche', 'Maple Butter'];
 const SHAPE_META = {
   circle: { label: 'Circle', surOrStock: 'In stock' },
   square: { label: 'Square', surOrStock: 'In stock' },
-  custom: { label: 'Custom shape', surOrStock: '+$1/doz' },
+  custom: { label: 'Custom shape', surOrStock: `+${money(SHAPE_CUSTOM_SURCHARGE)}/doz` },
 };
 const PEBBLE_META = {
-  s: { label: 'Small', pcs: '36 pieces', price: 15, incl: 1 },
-  m: { label: 'Medium', pcs: '72 pieces', price: 20, incl: 2 },
-  l: { label: 'Large', pcs: '108 pieces', price: 25, incl: 3 },
+  s: { label: 'Small', pcs: '36 pieces', price: price('pebbles_small'), incl: 1 },
+  m: { label: 'Medium', pcs: '72 pieces', price: price('pebbles_medium'), incl: 2 },
+  l: { label: 'Large', pcs: '108 pieces', price: price('pebbles_large'), incl: 3 },
 };
 
 function money(n) {
@@ -26,21 +37,14 @@ function qtyNum(it) { return it.qty === 'custom' ? (parseInt(it.qtyCustom, 10) |
 function priceItem(it) {
   if (it.product === 'pebbles') {
     const meta = PEBBLE_META[it.size];
-    const extra = Math.max(0, (it.dips || []).length - meta.incl) * 3;
+    const extra = Math.max(0, (it.dips || []).length - meta.incl) * PEBBLE_EXTRA_DIP;
     return (meta.price + extra) * (it.units || 1);
   }
-  const shapeSur = it.shape === 'custom' ? 1 : 0;
-  const decoAdj = it.deco === 'printed' ? -5 : Math.max(0, (it.colors || 0) - 3) * 4;
+  const shapeSur = it.shape === 'custom' ? SHAPE_CUSTOM_SURCHARGE : 0;
+  const decoAdj = it.deco === 'printed' ? DECO_PRINTED_ADJUSTMENT : Math.max(0, (it.colors || 0) - 3) * COLOUR_EXTRA_EACH;
   const perDoz = DOZEN + shapeSur + decoAdj;
   return (perDoz * qtyNum(it)) / 12;
 }
-function assignFileToInput(inputEl, file) {
-  if (!inputEl) return;
-  const dt = new DataTransfer();
-  if (file) dt.items.add(file);
-  inputEl.files = dt.files;
-}
-
 const inputStyle = { width: '100%', background: '#fff', border: '1.5px solid #e6d8cc', borderRadius: 12, padding: '12px 14px', font: "500 14px 'Hanken Grotesk'", color: '#4a352e' };
 const sectionLabel = { font: "700 11px 'Hanken Grotesk'", letterSpacing: '.14em', textTransform: 'uppercase', color: '#a86a3e', marginBottom: 11 };
 
@@ -51,12 +55,15 @@ export default function OrderForm() {
   const [contact, setContactState] = useState({ name: '', email: '', phone: '', date: '' });
   const [photos, setPhotos] = useState([]);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [narrow, setNarrow] = useState(false);
+  // Honeypot — real users never see or fill this field (see the hidden input
+  // below); a non-empty value on submit means a bot filled it blindly.
+  const [companyWebsite, setCompanyWebsite] = useState('');
 
   const rootRef = useRef(null);
-  const deviceTypeRef = useRef(null);
-  const photoRefs = [useRef(null), useRef(null), useRef(null)];
-  const submittingRef = useRef(false);
 
   useEffect(() => {
     const el = rootRef.current;
@@ -68,7 +75,7 @@ export default function OrderForm() {
 
   const cookieQtyTotal = () => items.filter((x) => x.product === 'cookies').reduce((a, x) => a + qtyNum(x), 0);
   const smallBatchApplies = () => { const t = cookieQtyTotal(); return t > 0 && t < 24; };
-  const orderTotal = () => { let t = items.reduce((a, x) => a + priceItem(x), 0); if (smallBatchApplies()) t += 5; return t; };
+  const orderTotal = () => { let t = items.reduce((a, x) => a + priceItem(x), 0); if (smallBatchApplies()) t += SMALL_BATCH_FEE; return t; };
   const canAdd = (it) => {
     if (!it) return false;
     if (it.product === 'pebbles') return (it.dips || []).length >= 1 && (it.units || 0) >= 1;
@@ -111,28 +118,65 @@ export default function OrderForm() {
   const itemViews = items.map((x, i) => itemView(x, i));
   const total = orderTotal();
 
-  // Provisional field names/shape — pending reconciliation against the real apps-script-backend.gs.
+  // Field names/shape here must match functions/order.js's itemToAirtableFields.
   const itemsPayload = items.map((it) => (it.product === 'pebbles'
     ? { product: 'Cookie Pebbles', size: PEBBLE_META[it.size].label, dips: it.dips, units: it.units, price: priceItem(it) }
     : { product: 'Sugar Cookies', shape: it.shape === 'custom' ? it.custom : it.shape, decoration: it.deco === 'printed' ? 'printed' : (it.colors + ' colours'), description: it.describe || '', quantity: qtyNum(it), price: priceItem(it) }));
   const orderSummary = itemViews.map((v) => `${v.title} — ${v.sub} — ${v.priceFmt}`).join('\n');
 
-  const handleSubmit = (e) => {
-    if (!APPS_SCRIPT_URL) {
-      e.preventDefault();
-      alert("The order form isn't wired up to a backend yet (APPS_SCRIPT_URL is empty in src/config.js). This is expected until the Apps Script Web App is deployed.");
-      return;
+  const submitOrder = async () => {
+    setSubmitting(true);
+    setSubmitError(false);
+    try {
+      const formData = new FormData();
+      formData.append('name', contact.name);
+      formData.append('email', contact.email);
+      formData.append('phone', contact.phone);
+      formData.append('eventDate', contact.date);
+      formData.append('total', String(total));
+      formData.append('smallBatchFee', String(smallBatchApplies() ? SMALL_BATCH_FEE : 0));
+      formData.append('itemsJson', JSON.stringify(itemsPayload));
+      formData.append('orderSummary', orderSummary);
+      formData.append('deviceType', window.innerWidth < 768 ? 'mobile' : 'desktop');
+      formData.append('companyWebsite', companyWebsite);
+      photos.forEach((p, i) => formData.append(`photo${i + 1}`, p.file));
+
+      const res = await fetch('/order', { method: 'POST', body: formData });
+      const data = await res.json().catch(() => ({ ok: false }));
+      if (res.ok && data.ok) setSubmitted(true); else setSubmitError(true);
+    } catch (err) {
+      setSubmitError(true);
+    } finally {
+      setSubmitting(false);
     }
-    if (!hasContact || items.length === 0) { e.preventDefault(); return; }
-    submittingRef.current = true;
-    if (deviceTypeRef.current) deviceTypeRef.current.value = window.innerWidth < 768 ? 'mobile' : 'desktop';
-    photoRefs.forEach((ref, i) => assignFileToInput(ref.current, photos[i]?.file));
-    // No preventDefault from here — this is a real multipart/form-data POST to a hidden
-    // iframe, not a fetch(), so the request isn't subject to CORS at all.
   };
 
-  const handleIframeLoad = () => {
-    if (submittingRef.current) { submittingRef.current = false; setSubmitted(true); }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!hasContact || items.length === 0 || submitting) return;
+    submitOrder();
+  };
+
+  const copyOrderDetails = async () => {
+    const text = [
+      `Name: ${contact.name}`,
+      `Email: ${contact.email}`,
+      `Phone: ${contact.phone}`,
+      `Event date: ${contact.date}`,
+      '',
+      orderSummary,
+      smallBatchApplies() ? `Small-batch fee: +${money(SMALL_BATCH_FEE)}` : '',
+      `Total estimate: ${money(total)}`,
+    ].filter(Boolean).join('\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    } catch (err) {
+      // Clipboard API can be unavailable (old browser, insecure context) —
+      // the owner's email shown alongside this button is still a usable
+      // fallback either way.
+    }
   };
 
   const layoutClass = narrow ? 'cf-col' : 'cf-row';
@@ -142,26 +186,19 @@ export default function OrderForm() {
     <form
       ref={rootRef}
       className="cf-scroll"
-      action={APPS_SCRIPT_URL || undefined}
-      method="POST"
-      encType="multipart/form-data"
-      target="scc-order-submit-frame"
       onSubmit={handleSubmit}
       style={{ fontFamily: "'Hanken Grotesk',system-ui,sans-serif", color: '#4a352e', background: '#fbf4ee', minHeight: '100%', width: '100%', position: 'relative' }}
     >
-      <input type="hidden" name="name" value={contact.name} readOnly />
-      <input type="hidden" name="email" value={contact.email} readOnly />
-      <input type="hidden" name="phone" value={contact.phone} readOnly />
-      <input type="hidden" name="eventDate" value={contact.date} readOnly />
-      <input type="hidden" name="total" value={total} readOnly />
-      <input type="hidden" name="smallBatchFee" value={smallBatchApplies() ? 5 : 0} readOnly />
-      <input type="hidden" name="itemsJson" value={JSON.stringify(itemsPayload)} readOnly />
-      <input type="hidden" name="orderSummary" value={orderSummary} readOnly />
-      <input type="hidden" name="deviceType" ref={deviceTypeRef} defaultValue="" />
-      <input type="file" name="photo1" ref={photoRefs[0]} style={{ display: 'none' }} />
-      <input type="file" name="photo2" ref={photoRefs[1]} style={{ display: 'none' }} />
-      <input type="file" name="photo3" ref={photoRefs[2]} style={{ display: 'none' }} />
-      <iframe title="order-submit-target" name="scc-order-submit-frame" style={{ display: 'none' }} onLoad={handleIframeLoad} />
+      <input
+        type="text"
+        name="companyWebsite"
+        value={companyWebsite}
+        onChange={(e) => setCompanyWebsite(e.target.value)}
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        style={{ position: 'absolute', left: -9999, width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
+      />
 
       {notDetails && (
         <div style={{ padding: '24px 24px 26px' }}>
@@ -182,8 +219,8 @@ export default function OrderForm() {
                   <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Add as many treats as you like — mix and match across your order.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {[
-                      { id: 'cookies', name: 'Custom Sugar Cookies', desc: 'Hand-iced or printed, any shape', from: 'from $80/doz', emoji: '🍪', swatch: '#f9dbe3' },
-                      { id: 'pebbles', name: 'Cookie Pebbles', desc: 'Bite-size, dipped in chocolate', from: 'from $15', emoji: '🍫', swatch: '#efe0d2' },
+                      { id: 'cookies', name: 'Custom Sugar Cookies', desc: 'Hand-iced or printed, any shape', from: `from ${money(DOZEN)}/doz`, emoji: '🍪', swatch: '#f9dbe3' },
+                      { id: 'pebbles', name: 'Cookie Pebbles', desc: 'Bite-size, dipped in chocolate', from: `from ${money(PEBBLE_META.s.price)}`, emoji: '🍫', swatch: '#efe0d2' },
                     ].map((p) => (
                       <button key={p.id} type="button" onClick={() => pickProduct(p.id)} style={{ textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 18, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
                         <span style={{ flex: 'none', width: 52, height: 52, borderRadius: 14, background: p.swatch, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{p.emoji}</span>
@@ -244,7 +281,7 @@ export default function OrderForm() {
                         </div>
                       ))}
                       {smallBatchApplies() && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', font: "600 12px 'Hanken Grotesk'", color: '#96566b' }}><span>Small-batch fee</span><span>+$5</span></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', font: "600 12px 'Hanken Grotesk'", color: '#96566b' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></div>
                       )}
                     </div>
                   ) : (
@@ -274,7 +311,7 @@ export default function OrderForm() {
                       </div>
                     ))}
                     {smallBatchApplies() && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', borderTop: '1px solid rgba(255,255,255,.12)', font: "600 12px 'Hanken Grotesk'", color: '#e6b9c6' }}><span>Small-batch fee</span><span>+$5</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', borderTop: '1px solid rgba(255,255,255,.12)', font: "600 12px 'Hanken Grotesk'", color: '#e6b9c6' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></div>
                     )}
                   </div>
                 ) : (
@@ -360,7 +397,7 @@ export default function OrderForm() {
                 {smallBatchApplies() && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f2e8dd' }}>
                     <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#96566b' }}>Small-batch fee</span>
-                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#96566b' }}>+$5</span>
+                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#96566b' }}>+{money(SMALL_BATCH_FEE)}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 12 }}>
@@ -369,7 +406,15 @@ export default function OrderForm() {
                 </div>
                 <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#a89482', textAlign: 'right', marginTop: 2 }}>Subject to final quote</div>
               </div>
-              <button type="submit" style={{ width: '100%', marginTop: 16, cursor: 'pointer', background: '#49331f', border: 'none', color: '#fbf4ee', borderRadius: 30, padding: 16, font: "700 16px 'Hanken Grotesk'", opacity: (hasContact && items.length > 0) ? 1 : .45 }}>Send my order request</button>
+
+              {submitError && (
+                <div style={{ marginTop: 16, background: '#f9dbe3', border: '1.5px solid #e6a6c0', borderRadius: 14, padding: '14px 16px', font: "500 13px 'Hanken Grotesk'", color: '#7a3c52', lineHeight: 1.55 }}>
+                  <p style={{ margin: '0 0 10px' }}>Something went wrong sending your order automatically. Email <a href={`mailto:${OWNER_EMAIL}`} style={{ color: '#7a3c52', fontWeight: 700 }}>{OWNER_EMAIL}</a> with your details, or copy them now and paste them into an email:</p>
+                  <button type="button" onClick={copyOrderDetails} style={{ cursor: 'pointer', background: '#fff', border: '1.5px solid #e6a6c0', color: '#7a3c52', borderRadius: 30, padding: '9px 16px', font: "700 13px 'Hanken Grotesk'" }}>{copied ? 'Copied ✓' : 'Copy order details'}</button>
+                </div>
+              )}
+
+              <button type="submit" disabled={submitting} style={{ width: '100%', marginTop: 16, cursor: 'pointer', background: '#49331f', border: 'none', color: '#fbf4ee', borderRadius: 30, padding: 16, font: "700 16px 'Hanken Grotesk'", opacity: (hasContact && items.length > 0 && !submitting) ? 1 : .45 }}>{submitting ? 'Sending…' : 'Send my order request'}</button>
               <p style={{ font: "500 11px 'Hanken Grotesk'", color: '#a89482', textAlign: 'center', margin: '10px 0 0' }}>I'll reply by email with a proof and your final quote.</p>
             </>
           )}
@@ -407,7 +452,7 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 12 }}>
         {[
           { id: 'colors', label: 'Hand-piped icing', note: 'Up to 3 colours + white', hasSave: false, saveBadge: '' },
-          { id: 'printed', label: 'Printed image', note: 'Full-colour edible print', hasSave: true, saveBadge: 'Save $5/dozen' },
+          { id: 'printed', label: 'Printed image', note: 'Full-colour edible print', hasSave: DECO_PRINTED_ADJUSTMENT < 0, saveBadge: `Save ${money(Math.abs(DECO_PRINTED_ADJUSTMENT))}/dozen` },
         ].map((d) => (
           <button key={d.id} type="button" onClick={() => setField({ deco: d.id })} style={{ position: 'relative', flex: '1 1 155px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
@@ -424,7 +469,7 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: '#f7ece4', borderRadius: 13, padding: '12px 15px', marginBottom: 20 }}>
           <div>
             <div style={{ font: "700 13px 'Hanken Grotesk'", color: '#49331f' }}>Icing colours</div>
-            {(it.colors || 0) > 3 && <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#a86a3e' }}>+${Math.max(0, (it.colors || 0) - 3) * 4}/doz</div>}
+            {(it.colors || 0) > 3 && <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#a86a3e' }}>+{money(Math.max(0, (it.colors || 0) - 3) * COLOUR_EXTRA_EACH)}/doz</div>}
             {(it.colors || 0) <= 3 && <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63' }}>+ white, included</div>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -456,7 +501,7 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
         <input value={it.qtyCustom} onChange={(e) => setField({ qtyCustom: e.target.value.replace(/[^0-9]/g, '') })} inputMode="numeric" placeholder="How many cookies?" style={{ ...inputStyle, marginTop: 10 }} />
       )}
       {smallBatchItem && (
-        <div style={{ marginTop: 11, background: '#f9dbe3', borderRadius: 12, padding: '11px 14px', font: "500 12px 'Hanken Grotesk'", color: '#96566b', lineHeight: 1.45 }}>♥ Under two dozen sugar cookies in your whole order adds a one-time <b>+$5</b> small-batch fee. Totally happy to make it!</div>
+        <div style={{ marginTop: 11, background: '#f9dbe3', borderRadius: 12, padding: '11px 14px', font: "500 12px 'Hanken Grotesk'", color: '#96566b', lineHeight: 1.45 }}>♥ Under two dozen sugar cookies in your whole order adds a one-time <b>+{money(SMALL_BATCH_FEE)}</b> small-batch fee. Totally happy to make it!</div>
       )}
     </>
   );
@@ -487,7 +532,7 @@ function PebbleBuilder({ item: it, setField, incUnits, toggleDip }) {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 11 }}>
         <span style={sectionLabel}>Dips</span>
-        <span style={{ font: "600 11px 'Hanken Grotesk'", color: '#8a6f63' }}>{meta.incl} included · extras $3</span>
+        <span style={{ font: "600 11px 'Hanken Grotesk'", color: '#8a6f63' }}>{meta.incl} included · extras {money(PEBBLE_EXTRA_DIP)}</span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
         {DIPS.map((name) => {
@@ -498,7 +543,7 @@ function PebbleBuilder({ item: it, setField, incUnits, toggleDip }) {
         })}
       </div>
       {extra > 0 ? (
-        <div style={{ font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginBottom: 20 }}>{extra} extra dip{extra > 1 ? 's' : ''} · +${extra * 3}</div>
+        <div style={{ font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginBottom: 20 }}>{extra} extra dip{extra > 1 ? 's' : ''} · +{money(extra * PEBBLE_EXTRA_DIP)}</div>
       ) : (
         <div style={{ height: 10 }} />
       )}

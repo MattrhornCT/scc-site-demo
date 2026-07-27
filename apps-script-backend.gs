@@ -1,3 +1,9 @@
+// DEPRECATED — superseded by functions/order.js (a Cloudflare Pages
+// Function). The order form now POSTs same-origin to /order instead of this
+// external Apps Script Web App. This file is kept only as a rollback
+// reference in case the Cloudflare Function needs to be backed out —
+// it is no longer deployed or referenced by src/config.js.
+//
 // Shelby's Cookie Co. — order intake backend
 //
 // Receives the multipart/form-data POST from the site's order form
@@ -51,6 +57,10 @@ function doPost(e) {
       'Order Summary': p.orderSummary || '',
       'Device Type': p.deviceType || '',
       'Status': 'New',
+      // No form UI sets these yet (that's the Phase 4 email-capture work) —
+      // default them so the Orders schema is ready ahead of that.
+      'Source': 'Website',
+      'Marketing Opt In': false,
     };
 
     // Create the Order first — photos attach to it by record ID afterward,
@@ -88,6 +98,9 @@ function parseItems(json) {
 // itemsJson items come in two shapes depending on product — see OrderForm.jsx.
 // Cookies: { product, shape, decoration, description, quantity, price }
 // Pebbles: { product, size, dips, units, price }
+// The Airtable Items.Product single-select also has a "Branded Client
+// Gifting" option reserved for later — OrderForm.jsx doesn't send that
+// product yet, so no extra handling is needed here until it does.
 function itemToAirtableFields(item, orderRecordId) {
   const fields = {
     'Order': [orderRecordId],

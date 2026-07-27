@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { loadGallery, photoMatchesFilters, isColorGroup, isValidCssColor } from '../gallery/loadGallery.js';
 
 const { photos: ALL_PHOTOS, groups: FILTER_GROUPS } = loadGallery();
@@ -28,6 +29,14 @@ function ColourDot({ value, size = 12 }) {
 
 export default function Gallery() {
   const [active, setActive] = useState({});
+  const [lightboxPhoto, setLightboxPhoto] = useState(null);
+
+  useEffect(() => {
+    if (!lightboxPhoto) return;
+    const onKeyDown = (e) => { if (e.key === 'Escape') setLightboxPhoto(null); };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [lightboxPhoto]);
 
   const toggle = (groupKey, value) => {
     setActive((s) => {
@@ -46,6 +55,19 @@ export default function Gallery() {
   );
 
   const countLabel = `${filtered.length} ${filtered.length === 1 ? 'design' : 'designs'}${hasFilters ? ' · filtered' : ''}`;
+
+  const colourGroup = FILTER_GROUPS.find((g) => isColorGroup(g.key));
+  const otherGroups = FILTER_GROUPS.filter((g) => g.key !== 'occasion' && !isColorGroup(g.key));
+
+  const photoMeta = (photo) => {
+    const colourValues = (colourGroup && photo.properties[colourGroup.key]) || [];
+    const taglineParts = [titleCase(photo.occasion)];
+    otherGroups.forEach((g) => {
+      const v = photo.properties[g.key];
+      if (v && v.length) taglineParts.push(v.join('/'));
+    });
+    return { colourValues, taglineParts };
+  };
 
   return (
     <main style={{ maxWidth: 1180, margin: '0 auto', padding: '54px 34px 72px' }}>
@@ -95,17 +117,13 @@ export default function Gallery() {
       ) : filtered.length > 0 ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))', gap: 20 }}>
           {filtered.map((photo) => {
-            const colourGroup = FILTER_GROUPS.find((g) => isColorGroup(g.key));
-            const colourValues = (colourGroup && photo.properties[colourGroup.key]) || [];
-            const otherGroups = FILTER_GROUPS.filter((g) => g.key !== 'occasion' && !isColorGroup(g.key));
-            const taglineParts = [titleCase(photo.occasion)];
-            otherGroups.forEach((g) => {
-              const v = photo.properties[g.key];
-              if (v && v.length) taglineParts.push(v.join('/'));
-            });
+            const { colourValues, taglineParts } = photoMeta(photo);
             return (
               <div key={photo.id} className="gcard" style={{ background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 20, overflow: 'hidden', boxShadow: '0 14px 30px -24px rgba(74,53,46,.5)' }}>
-                <div style={{ aspectRatio: '1', background: '#f3e6de' }}>
+                <div
+                  onClick={() => setLightboxPhoto(photo)}
+                  style={{ aspectRatio: '1', background: '#f3e6de', cursor: 'zoom-in' }}
+                >
                   <img src={photo.src} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                 </div>
                 <div style={{ padding: '14px 16px 16px' }}>
@@ -129,6 +147,41 @@ export default function Gallery() {
           <button onClick={clearFilters} style={{ cursor: 'pointer', background: '#49331f', color: '#fbf4ee', border: 'none', borderRadius: 30, padding: '12px 24px', font: "700 14px 'Hanken Grotesk'" }}>Clear filters</button>
         </div>
       )}
+
+      {lightboxPhoto && createPortal((() => {
+        const { colourValues, taglineParts } = photoMeta(lightboxPhoto);
+        return (
+          <div
+            onClick={() => setLightboxPhoto(null)}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(35,24,18,.82)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          >
+            <button
+              onClick={() => setLightboxPhoto(null)}
+              aria-label="Close"
+              style={{ position: 'absolute', top: 20, right: 24, cursor: 'pointer', background: 'rgba(255,255,255,.14)', color: '#fbf4ee', border: 'none', borderRadius: '50%', width: 40, height: 40, fontSize: 20, lineHeight: 1 }}
+            >✕</button>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{ background: '#fff', borderRadius: 20, overflow: 'hidden', maxWidth: 'min(92vw, 780px)', maxHeight: '90vh', display: 'flex', flexDirection: 'column', boxShadow: '0 30px 60px -20px rgba(0,0,0,.5)' }}
+            >
+              <img
+                src={lightboxPhoto.src}
+                alt={lightboxPhoto.label}
+                style={{ width: '100%', maxHeight: '72vh', objectFit: 'contain', display: 'block', background: '#f3e6de' }}
+              />
+              <div style={{ padding: '16px 20px' }}>
+                <div style={{ font: "700 17px 'Hanken Grotesk'", color: '#49331f', marginBottom: 3 }}>{lightboxPhoto.label}</div>
+                <div style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', marginBottom: colourValues.length ? 10 : 0 }}>{taglineParts.join(' · ')}</div>
+                {colourValues.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    {colourValues.map((c) => <ColourDot key={c} value={c} size={13} />)}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })(), document.body)}
     </main>
   );
 }

@@ -1,9 +1,9 @@
 import logo from '../assets/logo.png';
 
-export default function Footer({ goHome, goGallery, goOrder }) {
+export default function Footer({ goHome, goGallery, goOrder, goCorporate, goContact }) {
   const linkStyle = { textAlign: 'left', cursor: 'pointer', background: 'none', border: 'none', color: '#c9b3a6', font: '600 13.5px \'Hanken Grotesk\'', padding: 0 };
   return (
-    <footer style={{ background: '#35241a', color: '#c9b3a6', padding: '44px 34px 34px' }}>
+    <footer className="page-pad" style={{ background: '#35241a', color: '#c9b3a6', paddingTop: 44, paddingBottom: 34 }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', display: 'flex', flexWrap: 'wrap', gap: 34, justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div style={{ maxWidth: 300 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
@@ -19,6 +19,8 @@ export default function Footer({ goHome, goGallery, goOrder }) {
             <button onClick={goHome} style={linkStyle}>Home</button>
             <button onClick={goGallery} style={linkStyle}>Gallery</button>
             <button onClick={goOrder} style={linkStyle}>Custom Orders</button>
+            <button onClick={goCorporate} style={linkStyle}>Corporate Gifting</button>
+            <button onClick={goContact} style={linkStyle}>Contact</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             <span style={{ font: '700 11px \'Hanken Grotesk\'', letterSpacing: '.14em', textTransform: 'uppercase', color: '#8a6f5f', marginBottom: 2 }}>Say hello</span>

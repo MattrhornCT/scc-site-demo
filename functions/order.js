@@ -105,9 +105,10 @@ function parseItems(json) {
   }
 }
 
-// itemsJson items come in two shapes depending on product — see OrderForm.jsx.
+// itemsJson items come in three shapes depending on product — see OrderForm.jsx.
 // Cookies: { product, shape, decoration, description, quantity, price }
 // Pebbles: { product, size, dips, units, price }
+// Gifting: { product, company, dozens, colours, occasion, address, price }
 function itemToAirtableFields(item, orderRecordId) {
   const fields = {
     'Order': [orderRecordId],
@@ -118,6 +119,15 @@ function itemToAirtableFields(item, orderRecordId) {
     fields['Variant'] = item.size || '';
     fields['Details'] = Array.isArray(item.dips) ? item.dips.join(', ') : '';
     fields['Count'] = parseNumber(item.units);
+  } else if (item.product === 'Branded Client Gifting') {
+    fields['Variant'] = `${item.dozens || 0} dozen`;
+    fields['Details'] = item.colours || '';
+    fields['Description'] = [
+      item.company ? `Company: ${item.company}` : '',
+      item.occasion ? `Occasion: ${item.occasion}` : '',
+      item.address ? `Delivery address: ${item.address}` : '',
+    ].filter(Boolean).join('\n');
+    fields['Count'] = parseNumber(item.dozens);
   } else {
     fields['Variant'] = item.shape || '';
     fields['Details'] = item.decoration || '';

@@ -18,7 +18,7 @@ Same as before, plus:
 
 ### Table: `Items` (existing — extend one field)
 
-- [ ] Add `Branded Client Gifting` as an option on the `Product` single select. The order form doesn't send this product yet (that's a later phase) — this just makes the option available in Airtable ahead of time.
+- [ ] Add `Branded Client Gifting` as an option on the `Product` single select. Both the main order form and the `/corporate` enquiry form send this product now (Phase 3c) — without this option, Airtable will reject those Item records.
 
 ### Table: `Pricing` (new)
 
@@ -37,27 +37,24 @@ One row per priced thing. `npm run build` (and `npm run dev`) reads this table a
 
 **Fast path:** import [airtable-import/Pricing.csv](airtable-import/Pricing.csv) directly (Airtable → your base → Add table → Import → CSV file) instead of creating rows by hand — it already has all the rows below. After importing, double-check field types, since CSV import guesses them from the data: `Amount` should be **Currency**, `Min Quantity`/`Max Quantity` should be **Number**, `Unit` should be **Single select**, `Active` should be **Checkbox** (values of `checked` import as checked automatically).
 
-Create one **Active** row for each of these — the `Amount` values match what the live order form charges today, so turning this table on changes nothing visible yet:
+Create one **Active** row for each of these:
 
-| Key | Amount | Unit | Notes |
-|---|---|---|---|
-| `cookies_base_dozen` | 80 | per dozen | base price/dozen, hand-iced |
-| `shape_custom_surcharge` | 1 | per dozen | custom cutter shape |
-| `colour_extra_each` | 4 | per dozen | per icing colour beyond 3 included |
-| `deco_printed_adjustment` | -5 | per dozen | printed vs. hand-iced price delta (currently a discount) |
-| `small_batch_fee` | 5 | per order | applies when the order has under 2 dozen cookies |
-| `pebbles_small` | 15 | per item | 36 pieces, 1 dip included |
-| `pebbles_medium` | 20 | per item | 72 pieces, 2 dips included |
-| `pebbles_large` | 25 | per item | 108 pieces, 3 dips included |
-| `pebbles_extra_dip` | 3 | per dip | beyond the included count |
+| Key | Amount | Unit | Min Quantity | Max Quantity | Notes |
+|---|---|---|---|---|---|
+| `cookies_base_dozen` | 80 | per dozen | | | base price/dozen, hand-iced |
+| `shape_custom_surcharge` | 1 | per dozen | | | custom cutter shape |
+| `colour_extra_each` | 4 | per dozen | | | per icing colour beyond 3 included |
+| `deco_printed_adjustment` | 0 | per dozen | | | printed priced at parity with hand-iced — no discount (Phase 3b) |
+| `small_batch_fee` | 25 | per order | | | applies when the order has under 2 dozen cookies; covers fixed setup/design time (Phase 3a) |
+| `pebbles_small` | 15 | per item | | | 36 pieces, 1 dip included |
+| `pebbles_medium` | 20 | per item | | | 72 pieces, 2 dips included |
+| `pebbles_large` | 25 | per item | | | 108 pieces, 3 dips included |
+| `pebbles_extra_dip` | 3 | per dip | | | beyond the included count |
+| `gifting_tier_1` | 95 | per dozen | 4 | 8 | Branded Client Gifting per-dozen rate, 4–8 dozen |
+| `gifting_tier_2` | 85 | per dozen | 9 | 15 | Branded Client Gifting per-dozen rate, 9–15 dozen |
+| `gifting_tier_3` | 75 | per dozen | 16 | (blank) | Branded Client Gifting per-dozen rate, 16+ dozen |
 
-Optional — for a future "Branded Client Gifting" product, not read by the site yet, but fine to add now so the table's ready:
-
-| Key | Amount | Unit | Min Quantity | Max Quantity |
-|---|---|---|---|---|
-| `gifting_tier_1` | 95 | per dozen | 4 | 8 |
-| `gifting_tier_2` | 85 | per dozen | 9 | 15 |
-| `gifting_tier_3` | 75 | per dozen | 16 | (blank) |
+**If you already have this table populated from an earlier round:** `small_batch_fee` and `deco_printed_adjustment` changed value as part of Phase 3 (the small-batch fee went from $5 to $25, and the printed-cookie discount was removed). Update those two rows' `Amount` in your live base to 25 and 0 — the code changes (new copy, no discount badge) already shipped, but they'll only show correctly once the live values match. `gifting_tier_1/2/3` also went from optional/unread to required — if you added them earlier from [airtable-import/Pricing.csv](airtable-import/Pricing.csv) they're already in place; the build now fails loudly if they're missing or inactive, same as every other price.
 
 ### Table: `Gallery` (new)
 
@@ -124,17 +121,21 @@ To test the order form against the real `functions/order.js` locally (plain `npm
 
 Gallery photos are now managed entirely in Airtable's `Gallery` table (see section 1 above) — the old `src/gallery-images/` folder, `manifest.csv`, and `archive/` folder are no longer read by the site. To add or update a photo, add or edit a row in Airtable; to hide one, uncheck `Active`.
 
+## 4. Branded Client Gifting & the `/corporate` page
+
+Phase 3 added a third order-form product (alongside Custom Sugar Cookies and Cookie Pebbles) plus a dedicated `/corporate` landing page with its own shorter enquiry form, both posting to the same `functions/order.js` backend. One thing worth knowing: **`/corporate` isn't a real URL yet** — there's no router in this app (`src/App.jsx` is a plain `view` state switch, same as `home`/`gallery`/`order`), so it's reachable only via the "Corporate" nav/footer link, not by typing `/corporate` directly or sharing that link. Real per-path URLs are Phase 1 work (the Astro/SSG migration), not done yet.
+
 ## Field names — confirmed, form and backend match
-The order form builds its own `FormData` in JS and POSTs it to `/order` (see the `submitOrder` function in `src/components/OrderForm.jsx`), and `functions/order.js` reads the same field names — both sides are mine, so there's nothing left to reconcile:
+The order form builds its own `FormData` in JS and POSTs it to `/order` (see the `submitOrder` function in `src/components/OrderForm.jsx` and `CorporateEnquiryForm` in `src/pages/Corporate.jsx`), and `functions/order.js` reads the same field names — all three sides are mine, so there's nothing left to reconcile:
 
 | Field | Contents |
 |---|---|
-| `name`, `email`, `phone`, `eventDate` | Contact details |
+| `name`, `email`, `phone`, `eventDate` | Contact details (`eventDate` doubles as "delivery date" on the corporate form) |
 | `total`, `smallBatchFee` | Numbers |
-| `itemsJson` | JSON array of cart items (cookies/pebbles, each with its own shape) |
+| `itemsJson` | JSON array of cart items (cookies/pebbles/gifting, each with its own shape) |
 | `orderSummary` | Plain-text version of the same, for quick reading in a spreadsheet or email |
 | `deviceType` | `"mobile"` or `"desktop"`, set from viewport width right before submit |
-| `photo1`, `photo2`, `photo3` | Up to 3 uploaded inspiration photos |
+| `photo1`, `photo2`, `photo3` | Up to 3 uploaded inspiration photos, or a single logo file for a gifting order |
 
 ## Airtable base schema
 Two linked tables — `functions/order.js` writes to these exact field names.
@@ -163,10 +164,10 @@ Two linked tables — `functions/order.js` writes to these exact field names.
 |---|---|---|
 | Order | Link to another record (Orders) | set by the order backend when it creates the row |
 | Product | Single select (`Sugar Cookies`, `Cookie Pebbles`, `Branded Client Gifting`) | |
-| Variant | Single line text | Shape for cookies (e.g. "Circle", "Custom: Unicorn cutter") · Size for pebbles (e.g. "Medium") |
-| Details | Single line text | Decoration for cookies (e.g. "3 colours", "Printed") · Dips for pebbles, comma-separated |
-| Description | Long text | Cookies only — customer's freeform design notes, blank for pebbles |
-| Count | Number | Cookies: number of cookies · Pebbles: number of pebble-units ordered (each unit is a bag per the Size field, not individual pieces) |
+| Variant | Single line text | Shape for cookies (e.g. "Circle", "Custom: Unicorn cutter") · Size for pebbles (e.g. "Medium") · dozens for gifting (e.g. "8 dozen") |
+| Details | Single line text | Decoration for cookies (e.g. "3 colours", "Printed") · Dips for pebbles, comma-separated · brand colours for gifting |
+| Description | Long text | Cookies: customer's freeform design notes · Gifting: company name / occasion / delivery address, one per line · blank for pebbles |
+| Count | Number | Cookies: number of cookies · Pebbles: number of pebble-units ordered (each unit is a bag per the Size field, not individual pieces) · Gifting: number of dozens |
 | Price | Currency | This line item's price only |
 
 ## Legacy: Google Apps Script backend (deprecated, not in use)

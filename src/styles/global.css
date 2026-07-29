@@ -9,7 +9,6 @@ a:hover { color: #8a5230; }
 @keyframes floatyslow { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-14px) rotate(3deg); } }
 @keyframes wmfloat { 0%, 100% { transform: rotate(-8deg) translateY(0); } 50% { transform: rotate(-8deg) translateY(-7px); } }
 @keyframes wmwiggle { 0%, 100% { transform: rotate(-8deg); } 25% { transform: rotate(-16deg); } 75% { transform: rotate(0deg); } }
-@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes popIn { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: scale(1); } }
 @keyframes sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
@@ -30,3 +29,38 @@ a:hover { color: #8a5230; }
 input::placeholder, textarea::placeholder { color: #b9a596; }
 .cf-row { display: flex; gap: 22px; align-items: flex-start; }
 .cf-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* ---- Responsive ---- */
+
+.nav-links { display: flex; }
+.nav-burger { display: none; }
+.nav-mobile-panel { display: none; }
+
+@media (max-width: 860px) {
+  .nav-links { display: none !important; }
+  .nav-burger { display: block !important; }
+  .nav-mobile-panel { display: flex !important; }
+
+  .gallery-layout { flex-direction: column !important; }
+  .gallery-sidebar { flex: 1 1 auto !important; width: 100%; }
+
+  .home-hero { grid-template-columns: 1fr !important; }
+  .steps-grid { grid-template-columns: repeat(2,1fr) !important; }
+  .recent-grid { grid-template-columns: repeat(2,1fr) !important; }
+  .testimonial-grid { grid-template-columns: repeat(2,1fr) !important; }
+  .contact-layout { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 560px) {
+  .steps-grid { grid-template-columns: 1fr !important; }
+  .recent-grid { grid-template-columns: 1fr !important; }
+  .testimonial-grid { grid-template-columns: 1fr !important; }
+}
+
+.hero-title { font-size: clamp(34px, 7vw, 60px) !important; }
+.hero-title-sm { font-size: clamp(28px, 6vw, 46px) !important; }
+
+.page-pad { padding-left: 34px; padding-right: 34px; }
+@media (max-width: 600px) {
+  .page-pad { padding-left: 18px; padding-right: 18px; }
+}

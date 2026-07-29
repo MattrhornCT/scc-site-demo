@@ -12,3 +12,12 @@ export function price(key) {
   }
   return entry.amount;
 }
+
+// For volume-tiered pricing (e.g. gifting_tier_1/2/3), where a whole family
+// of keys sharing a prefix is needed rather than one fixed amount.
+export function priceTiers(prefix) {
+  return Object.entries(generated)
+    .filter(([key]) => key.startsWith(prefix))
+    .map(([key, entry]) => ({ key, amount: entry.amount, min: entry.minQuantity, max: entry.maxQuantity }))
+    .sort((a, b) => (a.min ?? 0) - (b.min ?? 0));
+}

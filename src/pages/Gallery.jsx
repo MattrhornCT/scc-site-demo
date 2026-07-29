@@ -30,6 +30,7 @@ function ColourDot({ value, size = 12 }) {
 export default function Gallery() {
   const [active, setActive] = useState({});
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   useEffect(() => {
     if (!lightboxPhoto) return;
@@ -69,23 +70,25 @@ export default function Gallery() {
     return { colourValues, taglineParts };
   };
 
+  const activeCount = Object.values(active).reduce((n, s) => n + (s ? s.size : 0), 0);
+
   return (
-    <main style={{ maxWidth: 1180, margin: '0 auto', padding: '54px 34px 72px' }}>
+    <main className="page-pad" style={{ maxWidth: 1180, margin: '0 auto', paddingTop: 54, paddingBottom: 72 }}>
       <div style={{ textAlign: 'center', marginBottom: 8 }}>
         <span style={{ display: 'inline-block', background: '#f9dbe3', color: '#96566b', border: '1.5px dashed #d98da8', borderRadius: 30, padding: '6px 15px', font: "700 11.5px 'Hanken Grotesk'", letterSpacing: '.05em', transform: 'rotate(-1.5deg)' }}>✿ The cookie book</span>
       </div>
-      <h1 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 46, letterSpacing: '-.02em', margin: '12px 0 8px', textAlign: 'center' }}>A little of everything sweet</h1>
+      <h1 className="hero-title-sm" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 46, letterSpacing: '-.02em', margin: '12px 0 8px', textAlign: 'center' }}>A little of everything sweet</h1>
       <p style={{ textAlign: 'center', color: '#8a6f63', fontSize: 16, margin: '0 auto 34px', maxWidth: 520 }}>Browse past designs by occasion, theme or colour — then start a custom order inspired by any of them.</p>
 
-      {FILTER_GROUPS.length > 0 && (
-        <div style={{ background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 22, padding: '22px 24px', boxShadow: '0 14px 30px -24px rgba(74,53,46,.5)', marginBottom: 30 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {FILTER_GROUPS.map((group, i) => (
-              <div key={group.key}>
-                {i > 0 && <div style={{ height: 1, background: '#f2e8dd', marginBottom: 16 }} />}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
-                  <span style={{ flex: '0 0 84px', font: "700 11px 'Hanken Grotesk'", letterSpacing: '.14em', textTransform: 'uppercase', color: '#a86a3e', paddingTop: 9 }}>{group.label}</span>
-                  <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+      <div className="gallery-layout" style={{ display: 'flex', alignItems: 'flex-start', gap: 28 }}>
+        {FILTER_GROUPS.length > 0 && filtersOpen && (
+          <aside className="gallery-sidebar" style={{ flex: '0 0 250px', background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 22, padding: '20px 20px', boxShadow: '0 14px 30px -24px rgba(74,53,46,.5)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
+              {FILTER_GROUPS.map((group, i) => (
+                <div key={group.key}>
+                  {i > 0 && <div style={{ height: 1, background: '#f2e8dd', marginBottom: 18 }} />}
+                  <div style={{ font: "700 11px 'Hanken Grotesk'", letterSpacing: '.14em', textTransform: 'uppercase', color: '#a86a3e', marginBottom: 10 }}>{group.label}</div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                     {group.values.map((value) => {
                       const isActive = active[group.key]?.has(value.toLowerCase());
                       return (
@@ -97,56 +100,69 @@ export default function Gallery() {
                     })}
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          </aside>
+        )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-        <span style={{ font: "600 14px 'Hanken Grotesk'", color: '#8a6f63' }}>{countLabel}</span>
-        {hasFilters && <button onClick={clearFilters} style={{ cursor: 'pointer', background: 'none', border: 'none', font: "700 13px 'Hanken Grotesk'", color: '#a86a3e' }}>✕ Clear filters</button>}
-      </div>
-
-      {ALL_PHOTOS.length === 0 ? (
-        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f7ece4', borderRadius: 22 }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>🍪</div>
-          <h3 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 6px' }}>The cookie book is just getting started</h3>
-          <p style={{ font: "500 14px 'Hanken Grotesk'", color: '#8a6f63', margin: 0 }}>Photos will show up here once they're added to src/gallery-images.</p>
-        </div>
-      ) : filtered.length > 0 ? (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))', gap: 20 }}>
-          {filtered.map((photo) => {
-            const { colourValues, taglineParts } = photoMeta(photo);
-            return (
-              <div key={photo.id} className="gcard" style={{ background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 20, overflow: 'hidden', boxShadow: '0 14px 30px -24px rgba(74,53,46,.5)' }}>
-                <div
-                  onClick={() => setLightboxPhoto(photo)}
-                  style={{ aspectRatio: '1', background: '#f3e6de', cursor: 'zoom-in' }}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, gap: 12, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              {FILTER_GROUPS.length > 0 && (
+                <button
+                  onClick={() => setFiltersOpen((o) => !o)}
+                  style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 7, background: filtersOpen ? '#49331f' : '#fff', color: filtersOpen ? '#fbf4ee' : '#4a352e', border: '1.5px solid ' + (filtersOpen ? '#49331f' : '#e6d8cc'), borderRadius: 30, padding: '9px 15px', font: "700 12.5px 'Hanken Grotesk'" }}
                 >
-                  <img src={photo.src} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                </div>
-                <div style={{ padding: '14px 16px 16px' }}>
-                  <div style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f', marginBottom: 3 }}>{photo.label}</div>
-                  <div style={{ font: "500 12px 'Hanken Grotesk'", color: '#8a6f63', marginBottom: 10 }}>{taglineParts.join(' · ')}</div>
-                  {colourValues.length > 0 && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {colourValues.map((c) => <ColourDot key={c} value={c} size={13} />)}
+                  Filters{activeCount > 0 ? ` (${activeCount})` : ''}
+                  <span style={{ display: 'inline-block', transition: 'transform .2s ease', transform: filtersOpen ? 'rotate(180deg)' : 'none' }}>⌄</span>
+                </button>
+              )}
+              <span style={{ font: "600 14px 'Hanken Grotesk'", color: '#8a6f63' }}>{countLabel}</span>
+            </div>
+            {hasFilters && <button onClick={clearFilters} style={{ cursor: 'pointer', background: 'none', border: 'none', font: "700 13px 'Hanken Grotesk'", color: '#a86a3e' }}>✕ Clear filters</button>}
+          </div>
+
+          {ALL_PHOTOS.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f7ece4', borderRadius: 22 }}>
+              <div style={{ fontSize: 40, marginBottom: 12 }}>🍪</div>
+              <h3 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 6px' }}>The cookie book is just getting started</h3>
+              <p style={{ font: "500 14px 'Hanken Grotesk'", color: '#8a6f63', margin: 0 }}>Photos will show up here once they're added to src/gallery-images.</p>
+            </div>
+          ) : filtered.length > 0 ? (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(230px,1fr))', gap: 20 }}>
+              {filtered.map((photo) => {
+                const { colourValues, taglineParts } = photoMeta(photo);
+                return (
+                  <div key={photo.id} className="gcard" style={{ background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 20, overflow: 'hidden', boxShadow: '0 14px 30px -24px rgba(74,53,46,.5)' }}>
+                    <div
+                      onClick={() => setLightboxPhoto(photo)}
+                      style={{ aspectRatio: '1', background: '#f3e6de', cursor: 'zoom-in' }}
+                    >
+                      <img src={photo.src} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+                    <div style={{ padding: '14px 16px 16px' }}>
+                      <div style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f', marginBottom: 3 }}>{photo.label}</div>
+                      <div style={{ font: "500 12px 'Hanken Grotesk'", color: '#8a6f63', marginBottom: 10 }}>{taglineParts.join(' · ')}</div>
+                      {colourValues.length > 0 && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {colourValues.map((c) => <ColourDot key={c} value={c} size={13} />)}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f7ece4', borderRadius: 22 }}>
+              <div style={{ fontSize: 40, marginBottom: 12, animation: 'sway 3s ease-in-out infinite' }}>🍪</div>
+              <h3 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 6px' }}>No designs match those filters yet</h3>
+              <p style={{ font: "500 14px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Try clearing a filter — or start a custom order and we'll design it fresh.</p>
+              <button onClick={clearFilters} style={{ cursor: 'pointer', background: '#49331f', color: '#fbf4ee', border: 'none', borderRadius: 30, padding: '12px 24px', font: "700 14px 'Hanken Grotesk'" }}>Clear filters</button>
+            </div>
+          )}
         </div>
-      ) : (
-        <div style={{ textAlign: 'center', padding: '60px 20px', background: '#f7ece4', borderRadius: 22 }}>
-          <div style={{ fontSize: 40, marginBottom: 12, animation: 'sway 3s ease-in-out infinite' }}>🍪</div>
-          <h3 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 6px' }}>No designs match those filters yet</h3>
-          <p style={{ font: "500 14px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Try clearing a filter — or start a custom order and we'll design it fresh.</p>
-          <button onClick={clearFilters} style={{ cursor: 'pointer', background: '#49331f', color: '#fbf4ee', border: 'none', borderRadius: 30, padding: '12px 24px', font: "700 14px 'Hanken Grotesk'" }}>Clear filters</button>
-        </div>
-      )}
+      </div>
 
       {lightboxPhoto && createPortal((() => {
         const { colourValues, taglineParts } = photoMeta(lightboxPhoto);

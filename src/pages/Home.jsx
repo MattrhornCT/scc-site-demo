@@ -1,8 +1,7 @@
 import logo from '../assets/logo.png';
 import logoBlack from '../assets/logo-black.svg';
 import { getRecentPhotos } from '../gallery/loadGallery.js';
-
-const SHOW_MARQUEE = true;
+import Testimonials from '../components/Testimonials.jsx';
 
 const steps = [
   { n: 1, title: 'Tell me the occasion', body: 'Theme, colours, date and quantity.' },
@@ -16,10 +15,10 @@ const recentPhotos = getRecentPhotos(3);
 export default function Home({ goOrder, goGallery }) {
   return (
     <main>
-      <section style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: '1.05fr .95fr', alignItems: 'stretch', gap: 0 }}>
-        <div style={{ padding: '70px 34px 74px' }}>
+      <section className="home-hero" style={{ maxWidth: 1180, margin: '0 auto', display: 'grid', gridTemplateColumns: '1.05fr .95fr', alignItems: 'stretch', gap: 0 }}>
+        <div className="page-pad" style={{ paddingTop: 70, paddingBottom: 74 }}>
           <div style={{ font: '600 12px \'Hanken Grotesk\'', letterSpacing: '.2em', textTransform: 'uppercase', color: '#a86a3e', marginBottom: 20 }}>Custom sugar cookies · GTA</div>
-          <h1 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 60, lineHeight: .98, letterSpacing: '-.02em', margin: '0 0 22px' }}>
+          <h1 className="hero-title" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 60, lineHeight: .98, letterSpacing: '-.02em', margin: '0 0 22px' }}>
             Baked by hand,<br />iced with{' '}
             <span style={{ color: '#a86a3e', position: 'relative', display: 'inline-block' }}>
               heart.
@@ -44,19 +43,11 @@ export default function Home({ goOrder, goGallery }) {
         </div>
       </section>
 
-      {SHOW_MARQUEE && (
-        <div style={{ background: '#49331f', color: '#f9dbe3', padding: '13px 0', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-          <div style={{ display: 'inline-block', fontFamily: "'Caveat',cursive", fontSize: 25, animation: 'marquee 26s linear infinite' }}>
-            weddings ♥ birthdays ♥ baby showers ♥ corporate gifts ♥ holidays ♥ baptisms ♥ weddings ♥ birthdays ♥ baby showers ♥ corporate gifts ♥ holidays ♥ baptisms ♥&nbsp;
-          </div>
-        </div>
-      )}
-
-      <section style={{ padding: '64px 34px 56px', background: '#f7ece4' }}>
+      <section className="page-pad" style={{ paddingTop: 64, paddingBottom: 56, background: '#f7ece4' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <h2 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 36, margin: '0 0 6px', textAlign: 'center' }}>How custom ordering works</h2>
           <p style={{ textAlign: 'center', color: '#8a6f63', fontSize: 15.5, margin: '0 0 38px' }}>Four warm little steps from idea to doorstep.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
+          <div className="steps-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 20 }}>
             {steps.map((s) => (
               <div key={s.n} className="lift" style={{ position: 'relative', overflow: 'hidden', background: '#fff', borderRadius: 22, padding: '26px 22px', boxShadow: '0 12px 26px -18px rgba(74,53,46,.5)' }}>
                 <div style={{ position: 'relative', zIndex: 1 }}>
@@ -70,13 +61,13 @@ export default function Home({ goOrder, goGallery }) {
         </div>
       </section>
 
-      <section style={{ padding: '60px 34px 64px' }}>
+      <section className="page-pad" style={{ paddingTop: 60, paddingBottom: 64 }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 22 }}>
             <h2 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 32, margin: 0 }}>Recently out of the oven</h2>
             <button onClick={goGallery} style={{ cursor: 'pointer', background: 'none', border: 'none', font: "600 14px 'Hanken Grotesk'", color: '#a86a3e' }}>Full gallery →</button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
+          <div className="recent-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
             {recentPhotos.map((photo) => (
               <div key={photo.id} className="gcard" onClick={goGallery} style={{ cursor: 'pointer', aspectRatio: '1', borderRadius: 24, overflow: 'hidden', position: 'relative', background: '#f3e6de', boxShadow: '0 12px 26px -20px rgba(74,53,46,.5)' }}>
                 <img src={photo.src} alt={photo.label} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -87,7 +78,9 @@ export default function Home({ goOrder, goGallery }) {
         </div>
       </section>
 
-      <section style={{ position: 'relative', background: '#49331f', color: '#fbf4ee', padding: '66px 34px 62px', textAlign: 'center', marginTop: 8 }}>
+      <Testimonials />
+
+      <section className="page-pad" style={{ position: 'relative', background: '#49331f', color: '#fbf4ee', paddingTop: 66, paddingBottom: 62, textAlign: 'center', marginTop: 8 }}>
         <svg viewBox="0 0 1200 24" preserveAspectRatio="none" style={{ position: 'absolute', left: 0, top: -1, width: '100%', height: 22 }}>
           <path d="M0,0 C40,24 80,24 120,12 C160,0 200,0 240,12 C280,24 320,24 360,12 C400,0 440,0 480,12 C520,24 560,24 600,12 C640,0 680,0 720,12 C760,24 800,24 840,12 C880,0 920,0 960,12 C1000,24 1040,24 1080,12 C1120,0 1160,0 1200,12 L1200,0 Z" fill="#f7ece4" />
         </svg>

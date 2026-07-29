@@ -38,6 +38,9 @@ const REQUIRED_PRICING_KEYS = [
   'pebbles_medium',
   'pebbles_large',
   'pebbles_extra_dip',
+  'gifting_tier_1',
+  'gifting_tier_2',
+  'gifting_tier_3',
 ];
 
 const IMAGE_WIDTHS = [400, 800, 1600];

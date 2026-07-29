@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { OWNER_EMAIL } from '../config.js';
 import { price } from '../data/pricing.js';
+import { GIFTING_TIERS, giftingTierFor } from '../data/gifting.js';
 import logo from '../assets/logo.png';
 import logoBlack from '../assets/logo-black.svg';
 
@@ -33,12 +34,17 @@ function money(n) {
 }
 function cookieDefault() { return { product: 'cookies', shape: 'circle', deco: 'colors', colors: 3, qty: 12, custom: '', qtyCustom: '', describe: '' }; }
 function pebbleDefault() { return { product: 'pebbles', size: 'm', dips: [], units: 1 }; }
+function giftingDefault() { return { product: 'gifting', company: '', dozens: 4, colours: '', occasion: '', address: '' }; }
 function qtyNum(it) { return it.qty === 'custom' ? (parseInt(it.qtyCustom, 10) || 0) : (it.qty || 0); }
 function priceItem(it) {
   if (it.product === 'pebbles') {
     const meta = PEBBLE_META[it.size];
     const extra = Math.max(0, (it.dips || []).length - meta.incl) * PEBBLE_EXTRA_DIP;
     return (meta.price + extra) * (it.units || 1);
+  }
+  if (it.product === 'gifting') {
+    const dozens = it.dozens || 0;
+    return giftingTierFor(dozens).amount * dozens;
   }
   const shapeSur = it.shape === 'custom' ? SHAPE_CUSTOM_SURCHARGE : 0;
   const decoAdj = it.deco === 'printed' ? DECO_PRINTED_ADJUSTMENT : Math.max(0, (it.colors || 0) - 3) * COLOUR_EXTRA_EACH;
@@ -79,14 +85,16 @@ export default function OrderForm() {
   const canAdd = (it) => {
     if (!it) return false;
     if (it.product === 'pebbles') return (it.dips || []).length >= 1 && (it.units || 0) >= 1;
+    if (it.product === 'gifting') return !!(it.company || '').trim() && (it.dozens || 0) >= 4 && !!(it.address || '').trim();
     if (it.shape === 'custom' && !(it.custom || '').trim()) return false;
     return qtyNum(it) >= 1;
   };
 
-  const pickProduct = (id) => { setItem(id === 'cookies' ? cookieDefault() : pebbleDefault()); setView('build'); };
+  const pickProduct = (id) => { setItem(id === 'cookies' ? cookieDefault() : id === 'pebbles' ? pebbleDefault() : giftingDefault()); setView('build'); };
   const setField = (patch) => setItem((it) => ({ ...it, ...patch }));
   const incColors = (d) => setItem((it) => ({ ...it, colors: Math.min(6, Math.max(1, (it.colors || 3) + d)) }));
   const incUnits = (d) => setItem((it) => ({ ...it, units: Math.max(1, (it.units || 1) + d) }));
+  const incDozens = (d) => setItem((it) => ({ ...it, dozens: Math.max(4, (it.dozens || 4) + d) }));
   const toggleDip = (name) => setItem((it) => {
     const cur = it.dips || [];
     return { ...it, dips: cur.includes(name) ? cur.filter((x) => x !== name) : [...cur, name] };
@@ -106,6 +114,10 @@ export default function OrderForm() {
       const meta = PEBBLE_META[x.size];
       return { idx: i, title: meta.label + ' Cookie Pebbles', sub: x.units + ' × ' + meta.pcs + ' · ' + (x.dips || []).length + ' dip' + ((x.dips || []).length === 1 ? '' : 's'), priceFmt: money(priceItem(x)), onRemove: () => removeItem(i) };
     }
+    if (x.product === 'gifting') {
+      const tier = giftingTierFor(x.dozens || 0);
+      return { idx: i, title: x.company || 'Branded Client Gifting', sub: `${x.dozens} dozen · ${money(tier.amount)}/doz`, priceFmt: money(priceItem(x)), onRemove: () => removeItem(i) };
+    }
     return {
       idx: i,
       title: x.shape === 'custom' ? (x.custom || 'Custom shape') : SHAPE_META[x.shape].label,
@@ -115,12 +127,15 @@ export default function OrderForm() {
   };
 
   const hasContact = !!(contact.name && contact.email);
+  const hasGifting = items.some((x) => x.product === 'gifting');
   const itemViews = items.map((x, i) => itemView(x, i));
   const total = orderTotal();
 
   // Field names/shape here must match functions/order.js's itemToAirtableFields.
   const itemsPayload = items.map((it) => (it.product === 'pebbles'
     ? { product: 'Cookie Pebbles', size: PEBBLE_META[it.size].label, dips: it.dips, units: it.units, price: priceItem(it) }
+    : it.product === 'gifting'
+    ? { product: 'Branded Client Gifting', company: it.company, dozens: it.dozens, colours: it.colours, occasion: it.occasion, address: it.address, price: priceItem(it) }
     : { product: 'Sugar Cookies', shape: it.shape === 'custom' ? it.custom : it.shape, decoration: it.deco === 'printed' ? 'printed' : (it.colors + ' colours'), description: it.describe || '', quantity: qtyNum(it), price: priceItem(it) }));
   const orderSummary = itemViews.map((v) => `${v.title} — ${v.sub} — ${v.priceFmt}`).join('\n');
 
@@ -221,6 +236,7 @@ export default function OrderForm() {
                     {[
                       { id: 'cookies', name: 'Custom Sugar Cookies', desc: 'Hand-iced or printed, any shape', from: `from ${money(DOZEN)}/doz`, emoji: '🍪', swatch: '#f9dbe3' },
                       { id: 'pebbles', name: 'Cookie Pebbles', desc: 'Bite-size, dipped in chocolate', from: `from ${money(PEBBLE_META.s.price)}`, emoji: '🍫', swatch: '#efe0d2' },
+                      { id: 'gifting', name: 'Branded Client Gifting', desc: 'Logo-accurate cookies for corporate gifting, min. 4 dozen', from: `from ${money(GIFTING_TIERS[0].amount)}/doz`, emoji: '🎁', swatch: '#e6ddf0' },
                     ].map((p) => (
                       <button key={p.id} type="button" onClick={() => pickProduct(p.id)} style={{ textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 18, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
                         <span style={{ flex: 'none', width: 52, height: 52, borderRadius: 14, background: p.swatch, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{p.emoji}</span>
@@ -231,13 +247,6 @@ export default function OrderForm() {
                         <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#a86a3e', whiteSpace: 'nowrap' }}>{p.from}</span>
                       </button>
                     ))}
-                    <div style={{ border: '1.5px dashed #d8c4b5', borderRadius: 18, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, opacity: .75 }}>
-                      <span style={{ flex: 'none', width: 52, height: 52, borderRadius: 14, background: '#f2e8dd', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>✨</span>
-                      <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                        <span style={{ font: "800 17px 'Bricolage Grotesque'", color: '#a89482' }}>More treats coming soon!</span>
-                        <span style={{ font: "500 13px 'Hanken Grotesk'", color: '#b7a290' }}>New seasonal goodies are in the oven ♥</span>
-                      </span>
-                    </div>
                   </div>
                 </>
               )}
@@ -251,6 +260,9 @@ export default function OrderForm() {
                   )}
                   {item.product === 'pebbles' && (
                     <PebbleBuilder item={item} setField={setField} incUnits={incUnits} toggleDip={toggleDip} />
+                  )}
+                  {item.product === 'gifting' && (
+                    <GiftingBuilder item={item} setField={setField} incDozens={incDozens} />
                   )}
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 22, paddingTop: 16, borderTop: '1px solid #f2e8dd' }}>
@@ -374,9 +386,9 @@ export default function OrderForm() {
                   <input value={contact.date} onChange={(e) => setContact('date', e.target.value)} type="date" style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 100%' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>Inspiration photos <span style={{ color: '#b9a596', fontWeight: 500 }}>· up to 3</span></label>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>{hasGifting ? 'Upload your logo' : 'Inspiration photos'} <span style={{ color: '#b9a596', fontWeight: 500 }}>{hasGifting ? '· for the print' : '· up to 3'}</span></label>
                   <label style={{ display: 'block', cursor: 'pointer', border: '1.5px dashed #d98da8', background: '#fdf1f5', borderRadius: 13, padding: 16, textAlign: 'center', font: "600 13px 'Hanken Grotesk'", color: '#96566b' }}>
-                    ＋ Add photos
+                    {hasGifting ? '＋ Add your logo' : '＋ Add photos'}
                     <input type="file" accept="image/*" multiple onChange={(e) => onPhotos(e.target.files)} style={{ display: 'none' }} />
                   </label>
                   {photos.length > 0 && (
@@ -451,13 +463,12 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
       <div style={sectionLabel}>Decoration</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 12 }}>
         {[
-          { id: 'colors', label: 'Hand-piped icing', note: 'Up to 3 colours + white', hasSave: false, saveBadge: '' },
-          { id: 'printed', label: 'Printed image', note: 'Full-colour edible print', hasSave: DECO_PRINTED_ADJUSTMENT < 0, saveBadge: `Save ${money(Math.abs(DECO_PRINTED_ADJUSTMENT))}/dozen` },
+          { id: 'colors', label: 'Hand-piped icing', note: 'Up to 3 colours + white' },
+          { id: 'printed', label: 'Printed image', note: 'Full-colour edible print' },
         ].map((d) => (
           <button key={d.id} type="button" onClick={() => setField({ deco: d.id })} style={{ position: 'relative', flex: '1 1 155px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
               <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f' }}>{d.label}</span>
-              {d.hasSave && <span style={{ font: "700 10px 'Hanken Grotesk'", color: '#3f7a3a', background: '#e2efdd', borderRadius: 20, padding: '2px 8px' }}>{d.saveBadge}</span>}
             </div>
             <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63', marginTop: 3 }}>{d.note}</div>
             {it.deco === d.id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 14, pointerEvents: 'none' }} />}
@@ -480,7 +491,7 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
         </div>
       )}
       {it.deco === 'printed' && (
-        <div style={{ background: '#eef3ea', borderRadius: 13, padding: '12px 15px', marginBottom: 20, font: "500 12px 'Hanken Grotesk'", color: '#5c6b52', lineHeight: 1.5 }}>A full-colour edible image printed right onto the cookie — perfect for logos, photos and fine detail. Comes in easier on price, too.</div>
+        <div style={{ background: '#eef3ea', borderRadius: 13, padding: '12px 15px', marginBottom: 20, font: "500 12px 'Hanken Grotesk'", color: '#5c6b52', lineHeight: 1.5 }}>A full-colour edible image printed right onto the cookie — perfect for logos, photos and fine detail.</div>
       )}
 
       <div style={sectionLabel}>Quantity</div>
@@ -501,7 +512,10 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
         <input value={it.qtyCustom} onChange={(e) => setField({ qtyCustom: e.target.value.replace(/[^0-9]/g, '') })} inputMode="numeric" placeholder="How many cookies?" style={{ ...inputStyle, marginTop: 10 }} />
       )}
       {smallBatchItem && (
-        <div style={{ marginTop: 11, background: '#f9dbe3', borderRadius: 12, padding: '11px 14px', font: "500 12px 'Hanken Grotesk'", color: '#96566b', lineHeight: 1.45 }}>♥ Under two dozen sugar cookies in your whole order adds a one-time <b>+{money(SMALL_BATCH_FEE)}</b> small-batch fee. Totally happy to make it!</div>
+        <div style={{ marginTop: 11, background: '#f7ece4', borderRadius: 12, padding: '13px 14px', font: "500 12px 'Hanken Grotesk'", color: '#6b524a', lineHeight: 1.5 }}>
+          Orders under two dozen cookies include a one-time <b>+{money(SMALL_BATCH_FEE)}</b> small-batch fee — design, mockup, dough and icing colours take the same setup time whatever the size.
+          <div style={{ marginTop: 6, fontWeight: 700, color: '#49331f' }}>Two dozen of this cookie would run {money(priceItem({ ...it, qty: 24, qtyCustom: '' }))} total — no small-batch fee, and more cookies for your event.</div>
+        </div>
       )}
     </>
   );
@@ -555,6 +569,42 @@ function PebbleBuilder({ item: it, setField, incUnits, toggleDip }) {
         <span style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f', minWidth: 22, textAlign: 'center' }}>{it.units}</span>
         <button type="button" onClick={() => incUnits(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
       </div>
+    </>
+  );
+}
+
+function GiftingBuilder({ item: it, setField, incDozens }) {
+  const dozens = it.dozens || 4;
+  const tier = giftingTierFor(dozens);
+  const total = tier.amount * dozens;
+  return (
+    <>
+      <h2 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 4px' }}>Branded Client Gifting</h2>
+      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Logo-accurate cookies for client and corporate gifting — 4 dozen minimum.</p>
+
+      <div style={sectionLabel}>Company name</div>
+      <input value={it.company} onChange={(e) => setField({ company: e.target.value })} placeholder="Who's this order for?" style={{ ...inputStyle, marginBottom: 20 }} />
+
+      <div style={sectionLabel}>How many dozen?</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f7ece4', borderRadius: 13, padding: '12px 16px', marginBottom: 8 }}>
+        <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#49331f', flex: 1 }}>Dozens (4 minimum)</span>
+        <button type="button" onClick={() => incDozens(-1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
+        <span style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f', minWidth: 22, textAlign: 'center' }}>{dozens}</span>
+        <button type="button" onClick={() => incDozens(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginBottom: 20 }}>
+        <span>{money(tier.amount)}/dozen at this quantity</span>
+        <span style={{ color: '#49331f', fontWeight: 700 }}>{money(total)} total</span>
+      </div>
+
+      <div style={sectionLabel}>Brand colours</div>
+      <input value={it.colours} onChange={(e) => setField({ colours: e.target.value })} placeholder="e.g. navy and gold" style={{ ...inputStyle, marginBottom: 20 }} />
+
+      <div style={sectionLabel}>Occasion</div>
+      <input value={it.occasion} onChange={(e) => setField({ occasion: e.target.value })} placeholder="e.g. closing gifts, office opening, conference handout" style={{ ...inputStyle, marginBottom: 20 }} />
+
+      <div style={sectionLabel}>Delivery address</div>
+      <textarea value={it.address} onChange={(e) => setField({ address: e.target.value })} rows={2} placeholder="Where should these be delivered?" style={{ ...inputStyle, lineHeight: 1.5, resize: 'vertical', fontFamily: "'Hanken Grotesk',sans-serif" }} />
     </>
   );
 }

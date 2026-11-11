@@ -105,3 +105,13 @@ export function photoMatchesFilters(photo, activeFilters) {
     return Array.from(activeSet).some((v) => values.includes(v.toLowerCase()));
   });
 }
+
+// Random subset of gallery photos (Fisher–Yates), used by the home hero polaroid.
+export function getRandomPhotos(n = 5) {
+  const pool = loadGallery().photos.filter((p) => p.src);
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, n);
+}

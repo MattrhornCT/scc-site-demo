@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import logo from '../assets/logo.png';
 import whisk from '../assets/photos/shelby-whisk-bowl.jpg';
 import portrait from '../assets/photos/shelby-portrait-cookie.jpg';
 import toolsHand from '../assets/photos/shelby-tools-hand.jpg';
 import holdingLogo from '../assets/photos/shelby-holding-logo-cookies.jpg';
-import { getRecentPhotos, getPhotosMatching } from '../gallery/loadGallery.js';
+import { getRecentPhotos, getPhotosMatching, getRandomPhotos } from '../gallery/loadGallery.js';
 import { CLIENT_LOGOS } from '../data/clientLogos.js';
 import Testimonials from '../components/Testimonials.jsx';
+import PolaroidFlip from '../components/PolaroidFlip.jsx';
 
 const recentPhotos = getRecentPhotos(4);
 const corporatePhotos = (() => {
@@ -34,7 +36,9 @@ const STEPS = [
 const titleCase = (s) => s.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/\b\w/g, (c) => c.toUpperCase());
 
 export default function Home({ go }) {
-  const polaroid = recentPhotos[0];
+  const [polaroidPhotos] = useState(() => getRandomPhotos(5));
+  const [swapped, setSwapped] = useState(false);
+  const hoverOn = (e) => { if (!e.pointerType || e.pointerType === 'mouse') setSwapped(true); };
 
   return (
     <main>
@@ -57,12 +61,13 @@ export default function Home({ go }) {
             </h1>
             <p style={{ fontSize: 18, lineHeight: 1.65, maxWidth: 460, color: '#5c463c', margin: '0 0 36px' }}>Hi, I'm Shelby. Every order is designed with you and decorated one cookie at a time — for showers, weddings, birthdays and branded corporate gifts.</p>
             <div style={{ display: 'flex', gap: 28, alignItems: 'center', flexWrap: 'wrap' }}>
-              <button type="button" className="btn" onClick={() => go('order')}>Start a custom order</button>
+              <button type="button" className="btn" onClick={() => go('order')} onPointerEnter={hoverOn} onPointerLeave={() => setSwapped(false)} onFocus={() => setSwapped(true)} onBlur={() => setSwapped(false)}>Start a custom order</button>
               <button type="button" className="link" onClick={() => go('gallery')}>Browse the gallery</button>
             </div>
           </div>
 
-          <div className="hero-art" style={{ position: 'relative', padding: '20px 30px 70px 46px' }}>
+          <div className={`hero-art${swapped ? ' swapped' : ''}`} style={{ position: 'relative' }}>
+            <div className="art-layer" style={{ position: 'relative', padding: '20px 30px 70px 46px' }}>
             <div aria-hidden="true" style={{ position: 'absolute', top: 0, right: 6, bottom: 54, left: 66, borderRadius: '400px 400px 22px 22px', border: '1.5px solid #3a2820' }} />
             <div className="zoom" style={{ position: 'relative', borderRadius: '400px 400px 18px 18px', aspectRatio: '4/5.2', background: '#f2d7dd', boxShadow: '0 30px 60px -30px rgba(58,40,32,.55)' }}>
               <img src={whisk} alt="Shelby whisking icing in a pearl mixing bowl" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: '50% 30%', display: 'block' }} />
@@ -75,14 +80,23 @@ export default function Home({ go }) {
               </svg>
               <img src={logo} alt="" style={{ width: '46%', position: 'relative' }} />
             </div>
-            {polaroid && (
-              <figure className="pol" style={{ position: 'absolute', left: 0, bottom: 0, margin: 0, width: '42%', background: '#fff', padding: '10px 10px 12px', boxShadow: '0 24px 50px -22px rgba(58,40,32,.5)', transform: 'rotate(-4deg)' }}>
-                <img src={polaroid.src} alt={polaroid.label} style={{ width: '100%', aspectRatio: '4/5', objectFit: 'cover', display: 'block' }} />
-                <figcaption className="hand" style={{ fontSize: 21, textAlign: 'center', marginTop: 6, color: '#b4506d' }}>{polaroid.label || 'fresh batch'} ♥</figcaption>
-              </figure>
-            )}
+            <PolaroidFlip photos={polaroidPhotos} />
             <div className="hand note" style={{ position: 'absolute', left: -74, top: 24, fontSize: 26, color: '#5c463c', transform: 'rotate(-8deg)' }}>that's me!
               <svg aria-hidden="true" viewBox="0 0 70 40" style={{ display: 'block', width: 64, margin: '2px 0 0 40px' }}><path d="M4,6 C30,4 50,14 60,32 M60,32 L48,28 M60,32 L62,20" fill="none" stroke="#5c463c" strokeWidth="2.2" strokeLinecap="round" /></svg>
+            </div>
+            </div>
+            <div className="hero-steps" aria-hidden={!swapped}>
+            <div className="hs-head"><span className="kicker" style={{ color: '#8a3550' }}>Custom orders</span><h2 className="serif" style={{ fontSize: 40, fontWeight: 400, letterSpacing: '-.03em', lineHeight: 1, margin: '8px 0 0' }}>How it <em style={{ fontWeight: 300, color: '#b4506d' }}>works</em></h2></div>
+            <ol className="hs-grid">
+              {STEPS.map((st, i) => (
+                <li key={st.n} className="step" style={{ '--i': i, background: st.bg, color: st.fg, borderRadius: 24, padding: '30px 30px 28px', boxShadow: '0 24px 40px -28px rgba(58,40,32,.5)' }}>
+                  <span className="serif" style={{ display: 'block', fontSize: 54, fontStyle: 'italic', fontWeight: 300, color: st.numColor, lineHeight: 1, marginBottom: 12 }}>{st.n}</span>
+                  <span style={{ display: 'block', font: "700 21px 'Hanken Grotesk'", marginBottom: 8 }}>{st.title}</span>
+                  <p style={{ margin: 0, color: st.sub, lineHeight: 1.55, fontSize: 16, maxWidth: 220 }}>{st.body}</p>
+                  <svg className="wm" aria-hidden="true" viewBox="0 0 24 24" style={{ stroke: st.stroke, opacity: st.op, width: 150, height: 150 }}>{st.icon}</svg>
+                </li>
+              ))}
+            </ol>
             </div>
           </div>
         </div>

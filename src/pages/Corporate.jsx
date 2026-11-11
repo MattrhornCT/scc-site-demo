@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { OWNER_EMAIL } from '../config.js';
 import { GIFTING_TIERS, giftingTierFor } from '../data/gifting.js';
 import { usePageMeta } from '../hooks/usePageMeta.js';
-import logo from '../assets/logo.png';
+import { getPhotosMatching, getRecentPhotos } from '../gallery/loadGallery.js';
+import portrait from '../assets/photos/shelby-portrait-cookie.jpg';
 import logoBlack from '../assets/logo-black.svg';
 
 function money(n) {
   n = Math.round(n * 100) / 100;
   return '$' + (n % 1 === 0 ? n.toFixed(0) : n.toFixed(2));
 }
-
-const inputStyle = { width: '100%', background: '#fff', border: '1.5px solid #e6d8cc', borderRadius: 10, padding: '11px 13px', font: "500 14px 'Hanken Grotesk'", color: '#4a352e' };
-const label = { font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 };
 
 const OCCASIONS = [
   'Real estate closings',
@@ -23,6 +21,29 @@ const OCCASIONS = [
   'Employee milestones',
 ];
 
+// Real corporate-themed gallery photos where they exist, otherwise recent work.
+const heroPhotos = (() => {
+  const c = getPhotosMatching(['corporate'], 2);
+  return c.length ? c : getRecentPhotos(2);
+})();
+
+const TIER_STYLES = [
+  { bg: '#f6dde3', fg: '#3a2820', kicker: '#8a3550' },
+  { bg: '#efe2d3', fg: '#3a2820', kicker: '#a0603f' },
+  { bg: '#3a2820', fg: '#fbf6f0', kicker: '#e7aabd' },
+];
+
+const LOGISTICS = [
+  { title: 'Lead time', body: '2 weeks minimum for volume orders — more for larger runs or during November/December.', bg: '#fbf6f0', stroke: '#b4506d',
+    icon: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></> },
+  { title: 'Delivery', body: 'GTA delivery scheduled to your date, or pickup in North York.', bg: '#f6dde3', stroke: '#8a3550',
+    icon: <><path d="M12 21.5 C12 21.5 19 14.5 19 9 A7 7 0 1 0 5 9 C5 14.5 12 21.5 12 21.5Z" /><circle cx="12" cy="9" r="2.6" /></> },
+  { title: 'Invoicing', body: 'PO numbers and invoicing terms are accommodated — just note it in your enquiry below.', bg: '#ecc3cf', stroke: '#8a3550',
+    icon: <><rect x="5" y="3" width="14" height="18" rx="2" /><path d="M8.5 8h7M8.5 12h7M8.5 16h4" /></> },
+];
+
+const tierLabel = (t) => `${t.min}${t.max ? `–${t.max}` : '+'} dozen`;
+
 export default function Corporate() {
   usePageMeta(
     "Corporate & Branded Cookie Gifting — Shelby's Cookie Co.",
@@ -30,54 +51,94 @@ export default function Corporate() {
   );
 
   return (
-    <main style={{ fontFamily: "'Hanken Grotesk',system-ui,sans-serif" }}>
-      <section className="page-pad" style={{ background: '#35241a', color: '#fbf4ee', paddingTop: 64, paddingBottom: 56 }}>
-        <div style={{ maxWidth: 780, margin: '0 auto' }}>
-          <div style={{ display: 'inline-block', border: '1px solid rgba(251,244,238,.3)', borderRadius: 6, padding: '5px 12px', font: "700 11px 'Hanken Grotesk'", letterSpacing: '.12em', textTransform: 'uppercase', color: '#d9b3bf', marginBottom: 18 }}>Corporate &amp; Client Gifting</div>
-          <h1 className="hero-title-sm" style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 40, letterSpacing: '-.02em', margin: '0 0 14px', lineHeight: 1.15 }}>Branded cookies your clients actually remember opening.</h1>
-          <p style={{ font: "500 16px 'Hanken Grotesk'", color: '#d3c2b7', lineHeight: 1.6, margin: '0 0 24px', maxWidth: 620 }}>Logo-accurate custom cookies for closings, referral thank-yous, and office milestones — priced and delivered like the professional gift they are, not a catering add-on.</p>
-          <div style={{ display: 'flex', gap: 22, flexWrap: 'wrap', font: "600 13px 'Hanken Grotesk'", color: '#c9b3a6' }}>
-            <span>✓ Invoicing &amp; PO numbers accommodated</span>
-            <span>✓ Volume pricing shown up front</span>
-            <span>✓ GTA delivery scheduled to your date</span>
+    <main>
+      {/* HERO */}
+      <section style={{ background: '#3a2820', color: '#fbf6f0', overflow: 'hidden' }}>
+        <div className="hero" style={{ maxWidth: 1240, margin: '0 auto', padding: '80px 40px', display: 'grid', gridTemplateColumns: heroPhotos.length ? 'minmax(0,1.15fr) minmax(0,.85fr)' : 'minmax(0,1fr)', gap: 56, alignItems: 'center' }}>
+          <div>
+            <div className="kicker" style={{ color: '#e7aabd', marginBottom: 22 }}>Corporate &amp; client gifting</div>
+            <h1 className="serif h1" style={{ fontSize: 70, fontWeight: 400, letterSpacing: '-.035em', lineHeight: 1, margin: '0 0 24px' }}>Branded cookies your clients <em style={{ fontWeight: 300, color: '#e7aabd' }}>actually remember opening.</em></h1>
+            <p style={{ fontSize: 18, lineHeight: 1.65, color: '#e3d2c8', maxWidth: 520, margin: '0 0 30px' }}>Logo-accurate custom cookies for closings, referral thank-yous, and office milestones — priced and delivered like the professional gift they are, not a catering add-on.</p>
+            <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 34px', display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+              {['✓ Invoicing & PO numbers accommodated', '✓ Volume pricing shown up front', '✓ GTA delivery scheduled to your date'].map((t) => (
+                <li key={t} style={{ border: '1.5px solid rgba(251,246,240,.25)', borderRadius: 999, padding: '8px 15px', font: "600 13.5px 'Hanken Grotesk'" }}>{t}</li>
+              ))}
+            </ul>
+            <a className="btn btn-cream" href="#request">Request corporate pricing</a>
           </div>
+          {heroPhotos.length > 0 && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1fr)', gap: 18, alignItems: 'start' }}>
+              <div className="zoom" style={{ borderRadius: 12, border: '8px solid #efe2d3' }}><img src={heroPhotos[0].srcLarge} alt={heroPhotos[0].label} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block', borderRadius: 4 }} /></div>
+              {heroPhotos[1] && <div className="zoom" style={{ borderRadius: '300px 300px 12px 12px', marginTop: 54, border: '8px solid #ecc3cf' }}><img src={heroPhotos[1].srcLarge} alt={heroPhotos[1].label} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', display: 'block' }} /></div>}
+            </div>
+          )}
         </div>
       </section>
 
-      <section className="page-pad" style={{ maxWidth: 780, margin: '0 auto', paddingTop: 48, paddingBottom: 8 }}>
-        <h2 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 24, color: '#49331f', margin: '0 0 18px' }}>Where this fits</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
-          {OCCASIONS.map((o) => (
-            <div key={o} style={{ background: '#f7ece4', borderRadius: 10, padding: '13px 15px', font: "600 13.5px 'Hanken Grotesk'", color: '#49331f' }}>{o}</div>
-          ))}
+      {/* WHERE THIS FITS */}
+      <section style={{ maxWidth: 1240, margin: '0 auto', padding: '84px 40px 40px' }}>
+        <div className="two" style={{ display: 'grid', gridTemplateColumns: 'minmax(0,.7fr) minmax(0,1.3fr)', gap: 56, alignItems: 'start' }}>
+          <div>
+            <div className="kicker" style={{ color: '#b4506d', marginBottom: 14 }}>Where this fits</div>
+            <h2 className="serif h2" style={{ fontSize: 48, fontWeight: 400, letterSpacing: '-.03em', lineHeight: 1, margin: 0 }}>Gifts for <em style={{ fontWeight: 300, color: '#b4506d' }}>every milestone</em></h2>
+          </div>
+          <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gridTemplateColumns: 'repeat(auto-fill,minmax(220px,1fr))', gap: 10 }}>
+            {OCCASIONS.map((o) => <li key={o} className="fit" style={{ background: '#f6dde3', borderRadius: 14, padding: '14px 18px', font: "600 15px 'Hanken Grotesk'" }}>{o}</li>)}
+          </ul>
         </div>
       </section>
 
-      <section className="page-pad" style={{ maxWidth: 780, margin: '0 auto', paddingTop: 40, paddingBottom: 8 }}>
-        <h2 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 24, color: '#49331f', margin: '0 0 6px' }}>Volume pricing</h2>
-        <p style={{ font: "500 13.5px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 16px' }}>4 dozen minimum. Rate applies per dozen across the whole order.</p>
-        <div style={{ border: '1.5px solid #efe4d9', borderRadius: 14, overflow: 'hidden' }}>
-          {GIFTING_TIERS.map((t, i) => (
-            <div key={t.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: i % 2 ? '#fbf4ee' : '#fff', borderTop: i > 0 ? '1px solid #efe4d9' : 'none' }}>
-              <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f' }}>{t.min}{t.max ? `–${t.max}` : '+'} dozen</span>
-              <span style={{ font: "800 18px 'Bricolage Grotesque'", color: '#49331f' }}>{money(t.amount)}<span style={{ font: "500 12px 'Hanken Grotesk'", color: '#8a6f63' }}> /dozen</span></span>
+      {/* PRICING + LOGISTICS */}
+      <section style={{ maxWidth: 1240, margin: '0 auto', padding: '60px 40px 90px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 16, marginBottom: 26 }}>
+          <div>
+            <div className="kicker" style={{ color: '#b4506d', marginBottom: 14 }}>Volume pricing</div>
+            <h2 className="serif h2" style={{ fontSize: 48, fontWeight: 400, letterSpacing: '-.03em', lineHeight: 1, margin: 0 }}>Simple, <em style={{ fontWeight: 300, color: '#b4506d' }}>up-front pricing</em></h2>
+          </div>
+          <p style={{ margin: 0, color: '#5c463c', maxWidth: 360, lineHeight: 1.6 }}>4 dozen minimum. Rate applies per dozen across the whole order.</p>
+        </div>
+        <div className="tiers" style={{ display: 'grid', gridTemplateColumns: `repeat(${Math.max(GIFTING_TIERS.length, 1)},minmax(0,1fr))`, gap: 16, marginBottom: 56 }}>
+          {GIFTING_TIERS.map((t, i) => {
+            const st = TIER_STYLES[Math.min(i, TIER_STYLES.length - 1)];
+            return (
+              <div key={t.key} className="tier" style={{ background: st.bg, color: st.fg, borderRadius: 22, padding: '28px 26px' }}>
+                <div className="kicker" style={{ fontSize: 11, color: st.kicker, marginBottom: 14 }}>{tierLabel(t)}</div>
+                <div>
+                  <span className="serif" style={{ fontSize: 56, fontWeight: 400, letterSpacing: '-.03em' }}>{money(t.amount)}</span>
+                  <span className="serif" style={{ fontSize: 20, fontStyle: 'italic', fontWeight: 300 }}> / dozen</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="kicker" style={{ color: '#b4506d', marginBottom: 16 }}>Lead time &amp; logistics</div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(240px,1fr))', gap: 16 }}>
+          {LOGISTICS.map((l) => (
+            <div key={l.title} className="lift step" style={{ background: l.bg, borderRadius: 20, padding: '24px 24px 28px', minHeight: 170 }}>
+              <div style={{ font: "700 17px 'Hanken Grotesk'", marginBottom: 8 }}>{l.title}</div>
+              <p style={{ margin: 0, color: '#5c463c', lineHeight: 1.6, fontSize: 15, maxWidth: 260 }}>{l.body}</p>
+              <svg className="wm" aria-hidden="true" viewBox="0 0 24 24" style={{ stroke: l.stroke, opacity: .32 }}>{l.icon}</svg>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="page-pad" style={{ maxWidth: 780, margin: '0 auto', paddingTop: 40, paddingBottom: 8 }}>
-        <h2 style={{ fontFamily: "'Bricolage Grotesque'", fontWeight: 800, fontSize: 24, color: '#49331f', margin: '0 0 16px' }}>Lead time &amp; logistics</h2>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 12 }}><b style={{ color: '#49331f' }}>Lead time</b><span style={{ color: '#6b524a' }}>2 weeks minimum for volume orders — more for larger runs or during November/December.</span></div>
-          <div style={{ display: 'flex', gap: 12 }}><b style={{ color: '#49331f' }}>Delivery</b><span style={{ color: '#6b524a' }}>GTA delivery scheduled to your date, or pickup in North York.</span></div>
-          <div style={{ display: 'flex', gap: 12 }}><b style={{ color: '#49331f' }}>Invoicing</b><span style={{ color: '#6b524a' }}>PO numbers and invoicing terms are accommodated — just note it in your enquiry below.</span></div>
-        </div>
-      </section>
-
-      <section style={{ maxWidth: 640, margin: '48px auto 72px', padding: '0 24px' }}>
-        <div style={{ border: '1.5px solid #efe4d9', borderRadius: 22, background: '#fbf4ee', padding: '30px 28px', boxShadow: '0 30px 70px -40px rgba(74,53,46,.4)' }}>
-          <CorporateEnquiryForm />
+      {/* REQUEST FORM */}
+      <section id="request" style={{ background: '#efe2d3', position: 'relative' }}>
+        <div className="beads" aria-hidden="true" style={{ color: '#b4506d', opacity: .55, position: 'absolute', top: 16, left: 0, right: 0 }} />
+        <div className="two" style={{ maxWidth: 1240, margin: '0 auto', padding: '96px 40px', display: 'grid', gridTemplateColumns: 'minmax(0,.75fr) minmax(0,1.25fr)', gap: 56, alignItems: 'start' }}>
+          <div>
+            <div className="kicker" style={{ color: '#8a3550', marginBottom: 14 }}>Request pricing</div>
+            <h2 className="serif h2" style={{ fontSize: 52, fontWeight: 400, letterSpacing: '-.03em', lineHeight: 1, margin: '0 0 18px' }}>Let's get your <em style={{ fontWeight: 300, color: '#b4506d' }}>gift box</em> started</h2>
+            <p style={{ fontSize: 17, lineHeight: 1.65, color: '#5c463c', margin: '0 0 26px' }}>A few logistics details — no design questions needed yet.</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <img className="pop" src={portrait} alt="Shelby" style={{ width: 62, height: 62, objectFit: 'cover', objectPosition: '50% 20%', borderRadius: '50%', border: '4px solid #fbf6f0' }} />
+              <span className="hand" style={{ fontSize: 24, color: '#8a3550', lineHeight: 1.05 }}>I'll reply within<br />a couple of days!</span>
+            </div>
+          </div>
+          <div style={{ background: '#fbf6f0', borderRadius: 24, padding: 32, boxShadow: '0 30px 60px -40px rgba(58,40,32,.5)' }}>
+            <CorporateEnquiryForm />
+          </div>
         </div>
       </section>
     </main>
@@ -169,9 +230,9 @@ function CorporateEnquiryForm() {
   if (submitted) {
     return (
       <div style={{ textAlign: 'center', padding: '20px 4px' }}>
-        <div style={{ width: 54, height: 48, margin: '0 auto 18px', background: '#a86a3e', WebkitMask: `url(${logoBlack}) center/contain no-repeat`, mask: `url(${logoBlack}) center/contain no-repeat` }} />
-        <h2 style={{ font: "800 24px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 10px' }}>Enquiry sent</h2>
-        <p style={{ font: "500 14px 'Hanken Grotesk'", color: '#8a6f63', lineHeight: 1.55, maxWidth: 360, margin: '0 auto' }}>Thanks — I'll follow up with a formal quote and next steps.</p>
+        <div style={{ width: 54, height: 48, margin: '0 auto 18px', background: '#b4506d', WebkitMask: `url(${logoBlack}) center/contain no-repeat`, mask: `url(${logoBlack}) center/contain no-repeat` }} />
+        <h2 className="serif" style={{ fontSize: 34, fontWeight: 400, margin: '0 0 10px' }}>Enquiry <em style={{ fontWeight: 300, color: '#b4506d' }}>sent</em></h2>
+        <p className="hand" style={{ fontSize: 26, color: '#b4506d', margin: 0 }}>thank you — I'll follow up with a formal quote and next steps ♥</p>
       </div>
     );
   }
@@ -189,71 +250,54 @@ function CorporateEnquiryForm() {
         style={{ position: 'absolute', left: -9999, width: 1, height: 1, opacity: 0, pointerEvents: 'none' }}
       />
 
-      <h2 style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 4px' }}>Request corporate pricing</h2>
-      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 20px' }}>A few logistics details — no design questions needed yet.</p>
+      <div className="f2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '16px 18px' }}>
+        <div className="fld"><label htmlFor="c-co">Company name</label><input id="c-co" type="text" autoComplete="organization" value={company} onChange={(e) => setCompany(e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-name">Your name</label><input id="c-name" type="text" autoComplete="name" value={contact.name} onChange={(e) => setContact('name', e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-email">Email</label><input id="c-email" type="email" autoComplete="email" value={contact.email} onChange={(e) => setContact('email', e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-phone">Phone</label><input id="c-phone" type="tel" autoComplete="tel" value={contact.phone} onChange={(e) => setContact('phone', e.target.value)} /></div>
+      </div>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Company name</label>
-          <input value={company} onChange={(e) => setCompany(e.target.value)} style={inputStyle} />
+      <div style={{ margin: '22px 0', padding: 20, background: '#f6dde3', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <div style={{ font: "700 12px 'Hanken Grotesk'", letterSpacing: '.08em', textTransform: 'uppercase', color: '#5c463c', marginBottom: 10 }}>Dozens <span className="opt">(4 minimum)</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <button type="button" className="step-btn" onClick={() => setDozens((d) => Math.max(4, d - 1))} aria-label="Fewer dozens">−</button>
+            <span className="serif" style={{ fontSize: 34, minWidth: 44, textAlign: 'center' }} aria-live="polite">{dozens}</span>
+            <button type="button" className="step-btn" onClick={() => setDozens((d) => d + 1)} aria-label="More dozens">+</button>
+          </div>
         </div>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Your name</label>
-          <input value={contact.name} onChange={(e) => setContact('name', e.target.value)} style={inputStyle} />
-        </div>
-        <div style={{ flex: '1 1 240px' }}>
-          <label style={label}>Email</label>
-          <input value={contact.email} onChange={(e) => setContact('email', e.target.value)} type="email" style={inputStyle} />
-        </div>
-        <div style={{ flex: '1 1 160px' }}>
-          <label style={label}>Phone</label>
-          <input value={contact.phone} onChange={(e) => setContact('phone', e.target.value)} style={inputStyle} />
-        </div>
-
-        <div style={{ flex: '1 1 100%', marginTop: 4, display: 'flex', alignItems: 'center', gap: 16, background: '#f7ece4', borderRadius: 13, padding: '12px 16px' }}>
-          <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#49331f', flex: 1 }}>Dozens (4 minimum)</span>
-          <button type="button" onClick={() => setDozens((d) => Math.max(4, d - 1))} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
-          <span style={{ font: "800 19px 'Bricolage Grotesque'", color: '#49331f', minWidth: 20, textAlign: 'center' }}>{dozens}</span>
-          <button type="button" onClick={() => setDozens((d) => d + 1)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
-        </div>
-        <div style={{ flex: '1 1 100%', display: 'flex', justifyContent: 'space-between', font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginTop: -4 }}>
-          <span>{money(tier.amount)}/dozen at this quantity</span>
-          <span style={{ color: '#49331f', fontWeight: 700 }}>{money(total)} total</span>
-        </div>
-
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Brand colours <span style={{ color: '#b9a596', fontWeight: 500 }}>· optional</span></label>
-          <input value={colours} onChange={(e) => setColours(e.target.value)} placeholder="e.g. navy and gold" style={inputStyle} />
-        </div>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Occasion</label>
-          <input value={occasion} onChange={(e) => setOccasion(e.target.value)} placeholder="e.g. closing gifts, office opening" style={inputStyle} />
-        </div>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Delivery date</label>
-          <input value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} type="date" style={inputStyle} />
-        </div>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Delivery address</label>
-          <textarea value={address} onChange={(e) => setAddress(e.target.value)} rows={2} style={{ ...inputStyle, lineHeight: 1.5, resize: 'vertical', fontFamily: "'Hanken Grotesk',sans-serif" }} />
-        </div>
-        <div style={{ flex: '1 1 100%' }}>
-          <label style={label}>Logo <span style={{ color: '#b9a596', fontWeight: 500 }}>· optional for now</span></label>
-          <label style={{ display: 'block', cursor: 'pointer', border: '1.5px dashed #d8c4b5', background: '#fff', borderRadius: 10, padding: 14, textAlign: 'center', font: "600 13px 'Hanken Grotesk'", color: '#6b524a' }}>
-            {logoFile ? logoFile.name : '＋ Add your logo'}
-            <input type="file" accept="image/*" onChange={(e) => onLogo(e.target.files)} style={{ display: 'none' }} />
-          </label>
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ font: "600 14px 'Hanken Grotesk'", color: '#8a3550' }}>{money(tier.amount)}/dozen at this quantity</div>
+          <div className="serif" style={{ fontSize: 40, letterSpacing: '-.02em' }}>{money(total)} total</div>
         </div>
       </div>
 
+      <div className="f2" style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '16px 18px' }}>
+        <div className="fld"><label htmlFor="c-col">Brand colours <span className="opt">· optional</span></label><input id="c-col" type="text" placeholder="e.g. navy and gold" value={colours} onChange={(e) => setColours(e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-occ">Occasion</label><input id="c-occ" type="text" placeholder="e.g. closing gifts, office opening" value={occasion} onChange={(e) => setOccasion(e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-date">Delivery date</label><input id="c-date" type="date" value={deliveryDate} onChange={(e) => setDeliveryDate(e.target.value)} /></div>
+        <div className="fld"><label htmlFor="c-addr">Delivery address</label><textarea id="c-addr" rows={1} autoComplete="street-address" value={address} onChange={(e) => setAddress(e.target.value)} style={{ resize: 'vertical', lineHeight: 1.4 }} /></div>
+      </div>
+
+      <div className="fld" style={{ marginTop: 16 }}>
+        <span className="lbl">Logo <span className="opt">· optional for now</span></span>
+        <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, border: '1.5px dashed #d58aa1', borderRadius: 14, padding: 22, background: '#fff', cursor: 'pointer', font: "600 15px 'Hanken Grotesk'", color: '#8a3550' }}>
+          {logoFile ? logoFile.name : '＋ Add your logo'}
+          <input type="file" accept="image/*" onChange={(e) => onLogo(e.target.files)} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
+        </label>
+      </div>
+
       {submitError && (
-        <div style={{ marginTop: 16, background: '#f9dbe3', border: '1.5px solid #e6a6c0', borderRadius: 14, padding: '14px 16px', font: "500 13px 'Hanken Grotesk'", color: '#7a3c52', lineHeight: 1.55 }}>
-          <p style={{ margin: '0 0 10px' }}>Something went wrong sending this automatically. Email <a href={`mailto:${OWNER_EMAIL}`} style={{ color: '#7a3c52', fontWeight: 700 }}>{OWNER_EMAIL}</a> with your details, or copy them now and paste them into an email:</p>
-          <button type="button" onClick={copyEnquiryDetails} style={{ cursor: 'pointer', background: '#fff', border: '1.5px solid #e6a6c0', color: '#7a3c52', borderRadius: 30, padding: '9px 16px', font: "700 13px 'Hanken Grotesk'" }}>{copied ? 'Copied ✓' : 'Copy enquiry details'}</button>
+        <div style={{ marginTop: 16, background: '#f6dde3', border: '1.5px solid #d58aa1', borderRadius: 14, padding: '14px 16px', font: "500 13px 'Hanken Grotesk'", color: '#8a3550', lineHeight: 1.55 }}>
+          <p style={{ margin: '0 0 10px' }}>Something went wrong sending this automatically. Email <a href={`mailto:${OWNER_EMAIL}`} style={{ color: '#8a3550', fontWeight: 700 }}>{OWNER_EMAIL}</a> with your details, or copy them now and paste them into an email:</p>
+          <button type="button" onClick={copyEnquiryDetails} style={{ cursor: 'pointer', background: '#fff', border: '1.5px solid #d58aa1', color: '#8a3550', borderRadius: 30, padding: '9px 16px', font: "700 13px 'Hanken Grotesk'" }}>{copied ? 'Copied ✓' : 'Copy enquiry details'}</button>
         </div>
       )}
 
-      <button type="submit" disabled={submitting} style={{ width: '100%', marginTop: 18, cursor: 'pointer', background: '#49331f', border: 'none', color: '#fbf4ee', borderRadius: 30, padding: 15, font: "700 15px 'Hanken Grotesk'", opacity: (canSubmit && !submitting) ? 1 : .45 }}>{submitting ? 'Sending…' : 'Request pricing'}</button>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginTop: 26 }}>
+        <span style={{ fontSize: 13.5, color: '#5c463c' }}>No payment now — I'll reply with a quote.</span>
+        <button type="submit" className="btn" disabled={submitting} style={{ opacity: (canSubmit && !submitting) ? 1 : .45 }}>{submitting ? 'Sending…' : 'Request pricing'}</button>
+      </div>
     </form>
   );
 }

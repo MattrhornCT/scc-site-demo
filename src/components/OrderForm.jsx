@@ -51,8 +51,8 @@ function priceItem(it) {
   const perDoz = DOZEN + shapeSur + decoAdj;
   return (perDoz * qtyNum(it)) / 12;
 }
-const inputStyle = { width: '100%', background: '#fff', border: '1.5px solid #e6d8cc', borderRadius: 12, padding: '12px 14px', font: "500 14px 'Hanken Grotesk'", color: '#4a352e' };
-const sectionLabel = { font: "700 11px 'Hanken Grotesk'", letterSpacing: '.14em', textTransform: 'uppercase', color: '#a86a3e', marginBottom: 11 };
+const inputStyle = { width: '100%', background: '#fff', border: '1.5px solid #e6d6c8', borderRadius: 12, padding: '12px 14px', font: "500 14px 'Hanken Grotesk'", color: '#3a2820' };
+const sectionLabel = { font: "700 11px 'Hanken Grotesk'", letterSpacing: '.14em', textTransform: 'uppercase', color: '#b4506d', marginBottom: 11 };
 
 export default function OrderForm() {
   const [view, setView] = useState('product');
@@ -202,7 +202,7 @@ export default function OrderForm() {
       ref={rootRef}
       className="cf-scroll"
       onSubmit={handleSubmit}
-      style={{ fontFamily: "'Hanken Grotesk',system-ui,sans-serif", color: '#4a352e', background: '#fbf4ee', minHeight: '100%', width: '100%', position: 'relative' }}
+      style={{ fontFamily: "'Hanken Grotesk',system-ui,sans-serif", color: '#3a2820', width: '100%', position: 'relative' }}
     >
       <input
         type="text"
@@ -216,44 +216,47 @@ export default function OrderForm() {
       />
 
       {notDetails && (
-        <div style={{ padding: '24px 24px 26px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 20 }}>
-            <img src={logo} alt="Shelby's Cookie Co." style={{ height: 42 }} />
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ font: "800 17px 'Bricolage Grotesque'", color: '#49331f' }}>Build your order</span>
-              <span style={{ font: "500 12px 'Hanken Grotesk'", color: '#a86a3e' }}>pick a treat, make it yours, add it in</span>
-            </div>
-          </div>
-
+        <div>
           <div className={layoutClass}>
             <div style={{ flex: '1 1 auto', minWidth: 0, width: '100%' }}>
 
               {view === 'product' && (
                 <>
-                  <h2 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 4px' }}>What would you like to add?</h2>
-                  <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Add as many treats as you like — mix and match across your order.</p>
+                  <h2 className="serif" style={{ fontSize: 36, fontWeight: 400, letterSpacing: '-.02em', margin: '0 0 4px' }}>What would you like <em style={{ fontWeight: 300, color: '#b4506d' }}>to add?</em></h2>
+                  <p style={{ color: '#5c463c', margin: '0 0 22px' }}>Add as many treats as you like — mix and match across your order.</p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {[
-                      { id: 'cookies', name: 'Custom Sugar Cookies', desc: 'Hand-iced or printed, any shape', from: `from ${money(DOZEN)}/doz`, emoji: '🍪', swatch: '#f9dbe3' },
-                      { id: 'pebbles', name: 'Cookie Pebbles', desc: 'Bite-size, dipped in chocolate', from: `from ${money(PEBBLE_META.s.price)}`, emoji: '🍫', swatch: '#efe0d2' },
-                      { id: 'gifting', name: 'Branded Client Gifting', desc: 'Logo-accurate cookies for corporate gifting, min. 4 dozen', from: `from ${money(GIFTING_TIERS[0].amount)}/doz`, emoji: '🎁', swatch: '#e6ddf0' },
-                    ].map((p) => (
-                      <button key={p.id} type="button" onClick={() => pickProduct(p.id)} style={{ textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 18, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
-                        <span style={{ flex: 'none', width: 52, height: 52, borderRadius: 14, background: p.swatch, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>{p.emoji}</span>
-                        <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                          <span style={{ font: "800 17px 'Bricolage Grotesque'", color: '#49331f' }}>{p.name}</span>
-                          <span style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63' }}>{p.desc}</span>
-                        </span>
-                        <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#a86a3e', whiteSpace: 'nowrap' }}>{p.from}</span>
-                      </button>
-                    ))}
+                      { id: 'cookies', name: 'Custom Sugar Cookies', desc: 'Hand-iced or printed, any shape', from: `from ${money(DOZEN)}/doz`, swatch: '#f6dde3',
+                        icon: <><circle cx="12" cy="12" r="9" /><circle cx="9" cy="9.4" r="1" /><circle cx="15.2" cy="10" r="1" /><circle cx="10.3" cy="14.6" r="1" /><circle cx="14.6" cy="15" r="1" /></> },
+                      { id: 'pebbles', name: 'Cookie Pebbles', desc: 'Bite-size, dipped in chocolate', from: `from ${money(PEBBLE_META.s.price)}`, swatch: '#efe2d3',
+                        icon: <><circle cx="8" cy="9" r="3.2" /><circle cx="15.5" cy="8" r="2.8" /><circle cx="11" cy="15.5" r="3.4" /><circle cx="17.5" cy="15" r="2.2" /></> },
+                      { id: 'gifting', name: 'Branded Client Gifting', desc: 'Logo-accurate cookies for corporate gifting, min. 4 dozen', from: `from ${money(GIFTING_TIERS[0].amount)}/doz`, swatch: '#ecc3cf',
+                        icon: <><rect x="3" y="8.5" width="18" height="12.5" rx="1.5" /><line x1="3" y1="12.5" x2="21" y2="12.5" /><line x1="12" y1="8.5" x2="12" y2="21" /><path d="M12 8.5 C12 4 7.5 4 7.5 6.5 C7.5 8.5 12 8.5 12 8.5Z" /><path d="M12 8.5 C12 4 16.5 4 16.5 6.5 C16.5 8.5 12 8.5 12 8.5Z" /></> },
+                    ].map((p) => {
+                      const added = items.some((x) => x.product === p.id);
+                      return (
+                        <button key={p.id} type="button" className="treat" onClick={() => pickProduct(p.id)} aria-label={`Add ${p.name}`}>
+                          <span className="ic" style={{ width: 58, height: 58, borderRadius: '50%', background: p.swatch, display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 'none' }}>
+                            <svg viewBox="0 0 24 24" aria-hidden="true" style={{ width: 30, height: 30, fill: 'none', stroke: '#3a2820', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round' }}>{p.icon}</svg>
+                          </span>
+                          <span style={{ flex: 1, minWidth: 0 }}>
+                            <span className="serif" style={{ display: 'block', fontSize: 22, letterSpacing: '-.01em' }}>{p.name}</span>
+                            <span style={{ display: 'block', fontSize: 14.5, color: '#5c463c', marginTop: 2 }}>{p.desc}</span>
+                          </span>
+                          <span className="treat-price" style={{ textAlign: 'right', flex: 'none' }}>
+                            <span style={{ display: 'block', font: "700 14px 'Hanken Grotesk'" }}>{p.from}</span>
+                            <span style={{ display: 'inline-block', marginTop: 6, font: "700 12.5px 'Hanken Grotesk'", color: '#b4506d' }}>{added ? '✓ Added · add more' : '+ Add'}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}
 
               {view === 'build' && item && (
                 <>
-                  <button type="button" onClick={() => { setView('product'); setItem(null); }} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#8a6f63', font: "700 13px 'Hanken Grotesk'", padding: 0, marginBottom: 14 }}>← All treats</button>
+                  <button type="button" onClick={() => { setView('product'); setItem(null); }} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#5c463c', font: "700 13px 'Hanken Grotesk'", padding: 0, marginBottom: 14 }}>← All treats</button>
 
                   {item.product === 'cookies' && (
                     <CookieBuilder item={item} setField={setField} incColors={incColors} cookieQtyTotal={cookieQtyTotal} qtyNum={qtyNum} />
@@ -265,9 +268,9 @@ export default function OrderForm() {
                     <GiftingBuilder item={item} setField={setField} incDozens={incDozens} />
                   )}
 
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 22, paddingTop: 16, borderTop: '1px solid #f2e8dd' }}>
-                    <div style={{ font: "600 13px 'Hanken Grotesk'", color: '#a86a3e' }}>This item: <b style={{ color: '#49331f' }}>{money(priceItem(item))}</b></div>
-                    <button type="button" onClick={addItem} style={{ cursor: 'pointer', background: '#49331f', border: 'none', color: '#fbf4ee', borderRadius: 30, padding: '14px 26px', font: "700 15px 'Hanken Grotesk'", opacity: canAdd(item) ? 1 : .45 }}>+ Add to order</button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginTop: 22, paddingTop: 16, borderTop: '1px solid #efe2d3' }}>
+                    <div style={{ font: "600 13px 'Hanken Grotesk'", color: '#b4506d' }}>This item: <b style={{ color: '#3a2820' }}>{money(priceItem(item))}</b></div>
+                    <button type="button" className="btn" onClick={addItem} style={{ padding: '14px 26px', opacity: canAdd(item) ? 1 : .45 }}>+ Add to order</button>
                   </div>
                 </>
               )}
@@ -275,159 +278,160 @@ export default function OrderForm() {
               {narrow && (
                 <div style={{ marginTop: 22 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
-                    <h3 style={{ font: "800 17px 'Bricolage Grotesque'", color: '#49331f', margin: 0 }}>Your order</h3>
-                    <span style={{ font: "600 12px 'Hanken Grotesk'", color: '#8a6f63' }}>{itemViews.length} added</span>
+                    <h3 style={{ font: "400 17px 'Fraunces'", color: '#3a2820', margin: 0 }}>Your order</h3>
+                    <span style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c' }}>{itemViews.length} added</span>
                   </div>
                   {itemViews.length > 0 ? (
-                    <div style={{ background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 16, padding: '6px 16px 12px' }}>
+                    <div style={{ background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 16, padding: '6px 16px 12px' }}>
                       {itemViews.map((li) => (
-                        <div key={li.idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '12px 0', borderBottom: '1px solid #f2e8dd' }}>
+                        <div key={li.idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, padding: '12px 0', borderBottom: '1px solid #efe2d3' }}>
                           <div style={{ minWidth: 0 }}>
-                            <div style={{ font: "700 14px 'Hanken Grotesk'", color: '#49331f' }}>{li.title}</div>
-                            <div style={{ font: "500 12px 'Hanken Grotesk'", color: '#8a6f63' }}>{li.sub}</div>
+                            <div style={{ font: "700 14px 'Hanken Grotesk'", color: '#3a2820' }}>{li.title}</div>
+                            <div style={{ font: "500 12px 'Hanken Grotesk'", color: '#5c463c' }}>{li.sub}</div>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 'none' }}>
-                            <span style={{ font: "700 14px 'Hanken Grotesk'", color: '#49331f' }}>{li.priceFmt}</span>
-                            <button type="button" onClick={li.onRemove} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#c58ea0', font: "700 12px 'Hanken Grotesk'" }}>Remove</button>
+                            <span style={{ font: "700 14px 'Hanken Grotesk'", color: '#3a2820' }}>{li.priceFmt}</span>
+                            <button type="button" onClick={li.onRemove} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#b4506d', font: "700 12px 'Hanken Grotesk'" }}>Remove</button>
                           </div>
                         </div>
                       ))}
                       {smallBatchApplies() && (
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', font: "600 12px 'Hanken Grotesk'", color: '#96566b' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', font: "600 12px 'Hanken Grotesk'", color: '#8a3550' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></div>
                       )}
                     </div>
                   ) : (
-                    <div style={{ background: '#f7ece4', borderRadius: 16, padding: 20, textAlign: 'center', font: "500 13px 'Hanken Grotesk'", color: '#a89482' }}>Nothing added yet — build a treat above.</div>
+                    <div style={{ background: '#fbf6f0', borderRadius: 16, padding: 20, textAlign: 'center', font: "500 13px 'Hanken Grotesk'", color: '#8a6f63' }}>Nothing added yet — build a treat above.</div>
                   )}
                 </div>
               )}
             </div>
 
             {!narrow && (
-              <div style={{ flex: '0 0 300px', position: 'sticky', top: 16, background: '#49331f', color: '#fbf4ee', borderRadius: 20, padding: 20 }}>
-                <div style={{ font: "700 11px 'Hanken Grotesk'", letterSpacing: '.16em', textTransform: 'uppercase', color: '#e6b9c6', marginBottom: 3 }}>Your order</div>
-                <div style={{ font: "800 34px 'Bricolage Grotesque'", marginBottom: 2 }}>{money(total)}</div>
-                <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#d9b3bf', marginBottom: 16 }}>Estimate · subject to final quote</div>
+              <aside aria-label="Your order" style={{ flex: '0 0 340px', position: 'sticky', top: 16, background: '#3a2820', color: '#fbf6f0', borderRadius: 22, padding: '28px 26px', overflow: 'hidden' }}>
+                <div className="kicker" style={{ fontSize: 11, color: '#e7aabd', marginBottom: 10 }}>Your order</div>
+                <div className="serif" aria-live="polite" style={{ fontSize: 52, letterSpacing: '-.03em', lineHeight: 1 }}>{money(total)}</div>
+                <div style={{ fontSize: 13, color: '#c9b3a6', margin: '6px 0 20px' }}>Estimate · subject to final quote</div>
+                <div className="beads" aria-hidden="true" style={{ color: 'rgba(231,170,189,.35)', marginBottom: 18 }} />
                 {itemViews.length > 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 14 }}>
                     {itemViews.map((li) => (
-                      <div key={li.idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '11px 0', borderTop: '1px solid rgba(255,255,255,.12)' }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ font: "700 13px 'Hanken Grotesk'", color: '#fbf4ee', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{li.title}</div>
-                          <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#c9a6b2' }}>{li.sub}</div>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 9, flex: 'none' }}>
-                          <span style={{ font: "700 13px 'Hanken Grotesk'" }}>{li.priceFmt}</span>
-                          <button type="button" onClick={li.onRemove} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#e6a6b6', font: "700 16px 'Hanken Grotesk'", lineHeight: 1 }}>×</button>
-                        </div>
-                      </div>
+                      <li key={li.idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                        <span style={{ minWidth: 0 }}>
+                          <span style={{ display: 'block', font: "700 15px 'Hanken Grotesk'", whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{li.title}</span>
+                          <span style={{ fontSize: 13, color: '#c9b3a6' }}>{li.sub}</span>
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 10, flex: 'none' }}>
+                          <span style={{ font: "700 15px 'Hanken Grotesk'" }}>{li.priceFmt}</span>
+                          <button type="button" onClick={li.onRemove} aria-label={`Remove ${li.title}`} style={{ width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #e3d2c8', background: 'transparent', color: '#fbf6f0', cursor: 'pointer', fontSize: 15, lineHeight: 1 }}>×</button>
+                        </span>
+                      </li>
                     ))}
                     {smallBatchApplies() && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', padding: '11px 0 0', borderTop: '1px solid rgba(255,255,255,.12)', font: "600 12px 'Hanken Grotesk'", color: '#e6b9c6' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></div>
+                      <li style={{ display: 'flex', justifyContent: 'space-between', font: "600 13px 'Hanken Grotesk'", color: '#e7aabd' }}><span>Small-batch fee</span><span>+{money(SMALL_BATCH_FEE)}</span></li>
                     )}
-                  </div>
+                  </ul>
                 ) : (
-                  <div style={{ borderTop: '1px solid rgba(255,255,255,.12)', padding: '16px 0', font: "500 12px 'Hanken Grotesk'", color: '#c9a6b2', lineHeight: 1.5 }}>Your treats will appear here as you add them.</div>
+                  <p className="hand" style={{ fontSize: 24, color: '#e7aabd', margin: 0, lineHeight: 1.15 }}>your treats will appear here as you add them ♥</p>
                 )}
                 {itemViews.length > 0 && (
-                  <button type="button" onClick={() => setView('details')} style={{ width: '100%', marginTop: 16, cursor: 'pointer', background: '#f5cad9', border: 'none', color: '#49331f', borderRadius: 30, padding: 14, font: "700 15px 'Hanken Grotesk'" }}>Continue to details →</button>
+                  <button type="button" className="btn btn-cream" onClick={() => setView('details')} style={{ display: 'block', width: '100%', textAlign: 'center', marginTop: 22 }}>Continue to details →</button>
                 )}
-              </div>
+              </aside>
             )}
           </div>
         </div>
       )}
 
       {narrow && notDetails && (
-        <div style={{ position: 'sticky', bottom: 0, background: '#49331f', color: '#fbf4ee', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '13px 18px', boxShadow: '0 -10px 26px -14px rgba(0,0,0,.5)' }}>
+        <div style={{ position: 'sticky', bottom: 0, zIndex: 20, background: '#3a2820', color: '#fbf6f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '13px 18px', boxShadow: '0 -10px 26px -14px rgba(0,0,0,.5)' }}>
           <div>
-            <div style={{ font: "700 9px 'Hanken Grotesk'", letterSpacing: '.16em', textTransform: 'uppercase', color: '#e6b9c6' }}>Estimate</div>
-            <div style={{ font: "800 22px 'Bricolage Grotesque'" }}>{money(total)}</div>
+            <div style={{ font: "700 9px 'Hanken Grotesk'", letterSpacing: '.16em', textTransform: 'uppercase', color: '#e7aabd' }}>Estimate</div>
+            <div style={{ font: "400 22px 'Fraunces'" }}>{money(total)}</div>
           </div>
           {itemViews.length > 0 ? (
-            <button type="button" onClick={() => setView('details')} style={{ cursor: 'pointer', background: '#f5cad9', border: 'none', color: '#49331f', borderRadius: 30, padding: '13px 22px', font: "700 14px 'Hanken Grotesk'" }}>Continue →</button>
+            <button type="button" onClick={() => setView('details')} style={{ cursor: 'pointer', background: '#fbf6f0', border: 'none', color: '#3a2820', borderRadius: 30, padding: '13px 22px', font: "700 14px 'Hanken Grotesk'" }}>Continue →</button>
           ) : (
-            <span style={{ font: "500 12px 'Hanken Grotesk'", color: '#d9b3bf', textAlign: 'right', maxWidth: 150 }}>Add a treat to start your estimate</span>
+            <span style={{ font: "500 12px 'Hanken Grotesk'", color: '#e3d2c8', textAlign: 'right', maxWidth: 150 }}>Add a treat to start your estimate</span>
           )}
         </div>
       )}
 
       {view === 'details' && (
-        <div style={{ padding: '24px 24px 34px', maxWidth: 620, margin: '0 auto' }}>
+        <div style={{ padding: '30px 30px 34px', maxWidth: 640, margin: '0 auto', background: '#fbf6f0', borderRadius: 24, boxShadow: '0 30px 60px -40px rgba(58,40,32,.5)' }}>
           {submitted ? (
             <div style={{ textAlign: 'center', padding: '44px 20px' }}>
-              <div style={{ width: 60, height: 54, margin: '0 auto 20px', background: '#a86a3e', WebkitMask: `url(${logoBlack}) center/contain no-repeat`, mask: `url(${logoBlack}) center/contain no-repeat` }} />
-              <h2 style={{ font: "800 28px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 10px' }}>Order request sent!</h2>
-              <p style={{ font: "500 15px 'Hanken Grotesk'", color: '#8a6f63', lineHeight: 1.55, maxWidth: 360, margin: '0 auto' }}>Thank you — I'll review your details and email you a proof and final quote soon. Can't wait to bake for you ♥</p>
+              <div style={{ width: 60, height: 54, margin: '0 auto 20px', background: '#b4506d', WebkitMask: `url(${logoBlack}) center/contain no-repeat`, mask: `url(${logoBlack}) center/contain no-repeat` }} />
+              <h2 style={{ font: "400 28px 'Fraunces'", color: '#3a2820', margin: '0 0 10px' }}>Order request sent!</h2>
+              <p style={{ font: "500 15px 'Hanken Grotesk'", color: '#5c463c', lineHeight: 1.55, maxWidth: 360, margin: '0 auto' }}>Thank you — I'll review your details and email you a proof and final quote soon. Can't wait to bake for you ♥</p>
             </div>
           ) : (
             <>
-              <button type="button" onClick={() => setView('product')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#8a6f63', font: "700 13px 'Hanken Grotesk'", padding: 0, marginBottom: 14 }}>← Back to my order</button>
+              <button type="button" onClick={() => setView('product')} style={{ cursor: 'pointer', background: 'none', border: 'none', color: '#5c463c', font: "700 13px 'Hanken Grotesk'", padding: 0, marginBottom: 14 }}>← Back to my order</button>
               <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 18 }}>
                 <img src={logo} alt="Shelby's Cookie Co." style={{ height: 40 }} />
-                <span style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f' }}>Last step — your details</span>
+                <span style={{ font: "400 20px 'Fraunces'", color: '#3a2820' }}>Last step — your details</span>
               </div>
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: 13 }}>
                 <div style={{ flex: '1 1 100%' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>Your name</label>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c', display: 'block', marginBottom: 5 }}>Your name</label>
                   <input value={contact.name} onChange={(e) => setContact('name', e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 240px' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>Email</label>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c', display: 'block', marginBottom: 5 }}>Email</label>
                   <input value={contact.email} onChange={(e) => setContact('email', e.target.value)} type="email" style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 160px' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>Phone</label>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c', display: 'block', marginBottom: 5 }}>Phone</label>
                   <input value={contact.phone} onChange={(e) => setContact('phone', e.target.value)} style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 100%' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>Event date</label>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c', display: 'block', marginBottom: 5 }}>Event date</label>
                   <input value={contact.date} onChange={(e) => setContact('date', e.target.value)} type="date" style={inputStyle} />
                 </div>
                 <div style={{ flex: '1 1 100%' }}>
-                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#6b524a', display: 'block', marginBottom: 5 }}>{hasGifting ? 'Upload your logo' : 'Inspiration photos'} <span style={{ color: '#b9a596', fontWeight: 500 }}>{hasGifting ? '· for the print' : '· up to 3'}</span></label>
-                  <label style={{ display: 'block', cursor: 'pointer', border: '1.5px dashed #d98da8', background: '#fdf1f5', borderRadius: 13, padding: 16, textAlign: 'center', font: "600 13px 'Hanken Grotesk'", color: '#96566b' }}>
+                  <label style={{ font: "600 12px 'Hanken Grotesk'", color: '#5c463c', display: 'block', marginBottom: 5 }}>{hasGifting ? 'Upload your logo' : 'Inspiration photos'} <span style={{ color: '#8a6f63', fontWeight: 500 }}>{hasGifting ? '· for the print' : '· up to 3'}</span></label>
+                  <label style={{ display: 'block', cursor: 'pointer', border: '1.5px dashed #d58aa1', background: '#fbf6f0', borderRadius: 13, padding: 16, textAlign: 'center', font: "600 13px 'Hanken Grotesk'", color: '#8a3550' }}>
                     {hasGifting ? '＋ Add your logo' : '＋ Add photos'}
                     <input type="file" accept="image/*" multiple onChange={(e) => onPhotos(e.target.files)} style={{ display: 'none' }} />
                   </label>
                   {photos.length > 0 && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
-                      {photos.map((ph) => <img key={ph.name} src={ph.url} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1.5px solid #efe4d9' }} />)}
+                      {photos.map((ph) => <img key={ph.name} src={ph.url} alt="" style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 10, border: '1.5px solid #efe2d3' }} />)}
                     </div>
                   )}
                 </div>
               </div>
 
-              <div style={{ marginTop: 18, background: '#fff', border: '1.5px solid #efe4d9', borderRadius: 16, padding: '8px 16px 14px' }}>
+              <div style={{ marginTop: 18, background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 16, padding: '8px 16px 14px' }}>
                 {itemViews.map((li) => (
-                  <div key={li.idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f2e8dd' }}>
-                    <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#6b524a' }}>{li.title} · {li.sub}</span>
-                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#49331f' }}>{li.priceFmt}</span>
+                  <div key={li.idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #efe2d3' }}>
+                    <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#5c463c' }}>{li.title} · {li.sub}</span>
+                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#3a2820' }}>{li.priceFmt}</span>
                   </div>
                 ))}
                 {smallBatchApplies() && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #f2e8dd' }}>
-                    <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#96566b' }}>Small-batch fee</span>
-                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#96566b' }}>+{money(SMALL_BATCH_FEE)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #efe2d3' }}>
+                    <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#8a3550' }}>Small-batch fee</span>
+                    <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#8a3550' }}>+{money(SMALL_BATCH_FEE)}</span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 12 }}>
-                  <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#8a6f63', textTransform: 'uppercase', letterSpacing: '.08em' }}>Estimate</span>
-                  <span style={{ font: "800 24px 'Bricolage Grotesque'", color: '#49331f' }}>{money(total)}</span>
+                  <span style={{ font: "700 13px 'Hanken Grotesk'", color: '#5c463c', textTransform: 'uppercase', letterSpacing: '.08em' }}>Estimate</span>
+                  <span style={{ font: "400 24px 'Fraunces'", color: '#3a2820' }}>{money(total)}</span>
                 </div>
-                <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#a89482', textAlign: 'right', marginTop: 2 }}>Subject to final quote</div>
+                <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63', textAlign: 'right', marginTop: 2 }}>Subject to final quote</div>
               </div>
 
               {submitError && (
-                <div style={{ marginTop: 16, background: '#f9dbe3', border: '1.5px solid #e6a6c0', borderRadius: 14, padding: '14px 16px', font: "500 13px 'Hanken Grotesk'", color: '#7a3c52', lineHeight: 1.55 }}>
-                  <p style={{ margin: '0 0 10px' }}>Something went wrong sending your order automatically. Email <a href={`mailto:${OWNER_EMAIL}`} style={{ color: '#7a3c52', fontWeight: 700 }}>{OWNER_EMAIL}</a> with your details, or copy them now and paste them into an email:</p>
-                  <button type="button" onClick={copyOrderDetails} style={{ cursor: 'pointer', background: '#fff', border: '1.5px solid #e6a6c0', color: '#7a3c52', borderRadius: 30, padding: '9px 16px', font: "700 13px 'Hanken Grotesk'" }}>{copied ? 'Copied ✓' : 'Copy order details'}</button>
+                <div style={{ marginTop: 16, background: '#f6dde3', border: '1.5px solid #d58aa1', borderRadius: 14, padding: '14px 16px', font: "500 13px 'Hanken Grotesk'", color: '#8a3550', lineHeight: 1.55 }}>
+                  <p style={{ margin: '0 0 10px' }}>Something went wrong sending your order automatically. Email <a href={`mailto:${OWNER_EMAIL}`} style={{ color: '#8a3550', fontWeight: 700 }}>{OWNER_EMAIL}</a> with your details, or copy them now and paste them into an email:</p>
+                  <button type="button" onClick={copyOrderDetails} style={{ cursor: 'pointer', background: '#fff', border: '1.5px solid #d58aa1', color: '#8a3550', borderRadius: 30, padding: '9px 16px', font: "700 13px 'Hanken Grotesk'" }}>{copied ? 'Copied ✓' : 'Copy order details'}</button>
                 </div>
               )}
 
-              <button type="submit" disabled={submitting} style={{ width: '100%', marginTop: 16, cursor: 'pointer', background: '#49331f', border: 'none', color: '#fbf4ee', borderRadius: 30, padding: 16, font: "700 16px 'Hanken Grotesk'", opacity: (hasContact && items.length > 0 && !submitting) ? 1 : .45 }}>{submitting ? 'Sending…' : 'Send my order request'}</button>
-              <p style={{ font: "500 11px 'Hanken Grotesk'", color: '#a89482', textAlign: 'center', margin: '10px 0 0' }}>I'll reply by email with a proof and your final quote.</p>
+              <button type="submit" className="btn" disabled={submitting} style={{ width: '100%', marginTop: 16, opacity: (hasContact && items.length > 0 && !submitting) ? 1 : .45 }}>{submitting ? 'Sending…' : 'Send my order request'}</button>
+              <p style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63', textAlign: 'center', margin: '10px 0 0' }}>I'll reply by email with a proof and your final quote.</p>
             </>
           )}
         </div>
@@ -441,7 +445,7 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
   const smallBatchItem = qtyNum(it) > 0 && wholeCookies < 24;
   return (
     <>
-      <h2 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 18px' }}>Custom Sugar Cookies</h2>
+      <h2 style={{ font: "400 22px 'Fraunces'", color: '#3a2820', margin: '0 0 18px' }}>Custom Sugar Cookies</h2>
 
       <div style={sectionLabel}>Describe your cookie</div>
       <textarea value={it.describe || ''} onChange={(e) => setField({ describe: e.target.value })} rows={3} placeholder="Tell me about your design — theme, style, colours, any text or details you'd love on the cookies…" style={{ ...inputStyle, marginBottom: 22, lineHeight: 1.5, resize: 'vertical', fontFamily: "'Hanken Grotesk',sans-serif" }} />
@@ -449,10 +453,10 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
       <div style={sectionLabel}>Shape</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 9, marginBottom: 20 }}>
         {['circle', 'square', 'custom'].map((id) => (
-          <button key={id} type="button" onClick={() => setField({ shape: id })} style={{ position: 'relative', flex: '1 1 120px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
-            <div style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f' }}>{SHAPE_META[id].label}</div>
-            <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#a86a3e' }}>{SHAPE_META[id].surOrStock}</div>
-            {it.shape === id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 14, pointerEvents: 'none' }} />}
+          <button key={id} type="button" onClick={() => setField({ shape: id })} style={{ position: 'relative', flex: '1 1 120px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
+            <div style={{ font: "700 15px 'Hanken Grotesk'", color: '#3a2820' }}>{SHAPE_META[id].label}</div>
+            <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#b4506d' }}>{SHAPE_META[id].surOrStock}</div>
+            {it.shape === id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #b4506d', borderRadius: 14, pointerEvents: 'none' }} />}
           </button>
         ))}
       </div>
@@ -466,55 +470,55 @@ function CookieBuilder({ item: it, setField, incColors, cookieQtyTotal, qtyNum }
           { id: 'colors', label: 'Hand-piped icing', note: 'Up to 3 colours + white' },
           { id: 'printed', label: 'Printed image', note: 'Full-colour edible print' },
         ].map((d) => (
-          <button key={d.id} type="button" onClick={() => setField({ deco: d.id })} style={{ position: 'relative', flex: '1 1 155px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
+          <button key={d.id} type="button" onClick={() => setField({ deco: d.id })} style={{ position: 'relative', flex: '1 1 155px', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 14, padding: '13px 15px', fontFamily: "'Hanken Grotesk',sans-serif" }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 7, flexWrap: 'wrap' }}>
-              <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f' }}>{d.label}</span>
+              <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#3a2820' }}>{d.label}</span>
             </div>
-            <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63', marginTop: 3 }}>{d.note}</div>
-            {it.deco === d.id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 14, pointerEvents: 'none' }} />}
+            <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#5c463c', marginTop: 3 }}>{d.note}</div>
+            {it.deco === d.id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #b4506d', borderRadius: 14, pointerEvents: 'none' }} />}
           </button>
         ))}
       </div>
 
       {it.deco === 'colors' && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: '#f7ece4', borderRadius: 13, padding: '12px 15px', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, background: '#f6dde3', borderRadius: 13, padding: '12px 15px', marginBottom: 20 }}>
           <div>
-            <div style={{ font: "700 13px 'Hanken Grotesk'", color: '#49331f' }}>Icing colours</div>
-            {(it.colors || 0) > 3 && <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#a86a3e' }}>+{money(Math.max(0, (it.colors || 0) - 3) * COLOUR_EXTRA_EACH)}/doz</div>}
-            {(it.colors || 0) <= 3 && <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#8a6f63' }}>+ white, included</div>}
+            <div style={{ font: "700 13px 'Hanken Grotesk'", color: '#3a2820' }}>Icing colours</div>
+            {(it.colors || 0) > 3 && <div style={{ font: "600 11px 'Hanken Grotesk'", color: '#b4506d' }}>+{money(Math.max(0, (it.colors || 0) - 3) * COLOUR_EXTRA_EACH)}/doz</div>}
+            {(it.colors || 0) <= 3 && <div style={{ font: "500 11px 'Hanken Grotesk'", color: '#5c463c' }}>+ white, included</div>}
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button type="button" onClick={() => incColors(-1)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
-            <span style={{ font: "800 19px 'Bricolage Grotesque'", color: '#49331f', minWidth: 16, textAlign: 'center' }}>{it.colors}</span>
-            <button type="button" onClick={() => incColors(1)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
+            <button type="button" onClick={() => incColors(-1)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
+            <span style={{ font: "400 19px 'Fraunces'", color: '#3a2820', minWidth: 16, textAlign: 'center' }}>{it.colors}</span>
+            <button type="button" onClick={() => incColors(1)} style={{ width: 32, height: 32, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 17px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
           </div>
         </div>
       )}
       {it.deco === 'printed' && (
-        <div style={{ background: '#eef3ea', borderRadius: 13, padding: '12px 15px', marginBottom: 20, font: "500 12px 'Hanken Grotesk'", color: '#5c6b52', lineHeight: 1.5 }}>A full-colour edible image printed right onto the cookie — perfect for logos, photos and fine detail.</div>
+        <div style={{ background: '#fbf6f0', borderRadius: 13, padding: '12px 15px', marginBottom: 20, font: "500 12px 'Hanken Grotesk'", color: '#5c463c', lineHeight: 1.5 }}>A full-colour edible image printed right onto the cookie — perfect for logos, photos and fine detail.</div>
       )}
 
       <div style={sectionLabel}>Quantity</div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
         {[6, 12, 24, 48].map((q) => (
-          <button key={q} type="button" onClick={() => setField({ qty: q })} style={{ position: 'relative', flex: '1 1 70px', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 13, padding: '12px 6px', textAlign: 'center', fontFamily: "'Hanken Grotesk',sans-serif" }}>
-            <div style={{ font: "800 18px 'Bricolage Grotesque'", color: '#49331f' }}>{q}</div>
-            <div style={{ font: "600 9px 'Hanken Grotesk'", color: '#a86a3e', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 1 }}>{q < 24 ? 'small batch' : (q === 24 ? 'minimum' : '')}</div>
-            {it.qty === q && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 13, pointerEvents: 'none' }} />}
+          <button key={q} type="button" onClick={() => setField({ qty: q })} style={{ position: 'relative', flex: '1 1 70px', cursor: 'pointer', background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 13, padding: '12px 6px', textAlign: 'center', fontFamily: "'Hanken Grotesk',sans-serif" }}>
+            <div style={{ font: "400 18px 'Fraunces'", color: '#3a2820' }}>{q}</div>
+            <div style={{ font: "600 9px 'Hanken Grotesk'", color: '#b4506d', textTransform: 'uppercase', letterSpacing: '.05em', marginTop: 1 }}>{q < 24 ? 'small batch' : (q === 24 ? 'minimum' : '')}</div>
+            {it.qty === q && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #b4506d', borderRadius: 13, pointerEvents: 'none' }} />}
           </button>
         ))}
       </div>
-      <button type="button" onClick={() => setField({ qty: 'custom' })} style={{ position: 'relative', width: '100%', marginTop: 8, cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 13, padding: 12, textAlign: 'center', font: "700 13px 'Hanken Grotesk'", color: '#49331f', letterSpacing: '.02em' }}>
+      <button type="button" onClick={() => setField({ qty: 'custom' })} style={{ position: 'relative', width: '100%', marginTop: 8, cursor: 'pointer', background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 13, padding: 12, textAlign: 'center', font: "700 13px 'Hanken Grotesk'", color: '#3a2820', letterSpacing: '.02em' }}>
         CUSTOM AMOUNT
-        {it.qty === 'custom' && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 13, pointerEvents: 'none' }} />}
+        {it.qty === 'custom' && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #b4506d', borderRadius: 13, pointerEvents: 'none' }} />}
       </button>
       {it.qty === 'custom' && (
         <input value={it.qtyCustom} onChange={(e) => setField({ qtyCustom: e.target.value.replace(/[^0-9]/g, '') })} inputMode="numeric" placeholder="How many cookies?" style={{ ...inputStyle, marginTop: 10 }} />
       )}
       {smallBatchItem && (
-        <div style={{ marginTop: 11, background: '#f7ece4', borderRadius: 12, padding: '13px 14px', font: "500 12px 'Hanken Grotesk'", color: '#6b524a', lineHeight: 1.5 }}>
+        <div style={{ marginTop: 11, background: '#fbf6f0', borderRadius: 12, padding: '13px 14px', font: "500 12px 'Hanken Grotesk'", color: '#5c463c', lineHeight: 1.5 }}>
           Orders under two dozen cookies include a one-time <b>+{money(SMALL_BATCH_FEE)}</b> small-batch fee — design, mockup, dough and icing colours take the same setup time whatever the size.
-          <div style={{ marginTop: 6, fontWeight: 700, color: '#49331f' }}>Two dozen of this cookie would run {money(priceItem({ ...it, qty: 24, qtyCustom: '' }))} total — no small-batch fee, and more cookies for your event.</div>
+          <div style={{ marginTop: 6, fontWeight: 700, color: '#3a2820' }}>Two dozen of this cookie would run {money(priceItem({ ...it, qty: 24, qtyCustom: '' }))} total — no small-batch fee, and more cookies for your event.</div>
         </div>
       )}
     </>
@@ -527,47 +531,47 @@ function PebbleBuilder({ item: it, setField, incUnits, toggleDip }) {
   const extra = Math.max(0, sel.length - meta.incl);
   return (
     <>
-      <h2 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 4px' }}>Cookie Pebbles</h2>
-      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Bite-size cookie bits, dipped in your choice of coatings.</p>
+      <h2 style={{ font: "400 22px 'Fraunces'", color: '#3a2820', margin: '0 0 4px' }}>Cookie Pebbles</h2>
+      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#5c463c', margin: '0 0 18px' }}>Bite-size cookie bits, dipped in your choice of coatings.</p>
 
       <div style={sectionLabel}>Size</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 9, marginBottom: 20 }}>
         {['s', 'm', 'l'].map((id) => (
-          <button key={id} type="button" onClick={() => setField({ size: id })} style={{ position: 'relative', width: '100%', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #ece0d6', borderRadius: 14, padding: '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontFamily: "'Hanken Grotesk',sans-serif" }}>
+          <button key={id} type="button" onClick={() => setField({ size: id })} style={{ position: 'relative', width: '100%', textAlign: 'left', cursor: 'pointer', background: '#fff', border: '1.5px solid #efe2d3', borderRadius: 14, padding: '13px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, fontFamily: "'Hanken Grotesk',sans-serif" }}>
             <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#49331f' }}>{PEBBLE_META[id].label} · {PEBBLE_META[id].pcs}</span>
-              <span style={{ font: "500 12px 'Hanken Grotesk'", color: '#8a6f63' }}>{PEBBLE_META[id].incl} dip{PEBBLE_META[id].incl > 1 ? 's' : ''} included</span>
+              <span style={{ font: "700 15px 'Hanken Grotesk'", color: '#3a2820' }}>{PEBBLE_META[id].label} · {PEBBLE_META[id].pcs}</span>
+              <span style={{ font: "500 12px 'Hanken Grotesk'", color: '#5c463c' }}>{PEBBLE_META[id].incl} dip{PEBBLE_META[id].incl > 1 ? 's' : ''} included</span>
             </span>
-            <span style={{ font: "800 16px 'Bricolage Grotesque'", color: '#49331f' }}>${PEBBLE_META[id].price}</span>
-            {it.size === id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #a86a3e', borderRadius: 14, pointerEvents: 'none' }} />}
+            <span style={{ font: "400 16px 'Fraunces'", color: '#3a2820' }}>${PEBBLE_META[id].price}</span>
+            {it.size === id && <span style={{ position: 'absolute', inset: 0, border: '2.5px solid #b4506d', borderRadius: 14, pointerEvents: 'none' }} />}
           </button>
         ))}
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 11 }}>
         <span style={sectionLabel}>Dips</span>
-        <span style={{ font: "600 11px 'Hanken Grotesk'", color: '#8a6f63' }}>{meta.incl} included · extras {money(PEBBLE_EXTRA_DIP)}</span>
+        <span style={{ font: "600 11px 'Hanken Grotesk'", color: '#5c463c' }}>{meta.incl} included · extras {money(PEBBLE_EXTRA_DIP)}</span>
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10 }}>
         {DIPS.map((name) => {
           const on = sel.includes(name);
           return (
-            <button key={name} type="button" onClick={() => toggleDip(name)} style={{ position: 'relative', cursor: 'pointer', background: on ? '#49331f' : '#fff', border: '1.5px solid ' + (on ? '#49331f' : '#e6d8cc'), borderRadius: 30, padding: '9px 15px', font: "600 13px 'Hanken Grotesk'", color: on ? '#fbf4ee' : '#6b524a' }}>{name}</button>
+            <button key={name} type="button" onClick={() => toggleDip(name)} style={{ position: 'relative', cursor: 'pointer', background: on ? '#3a2820' : '#fff', border: '1.5px solid ' + (on ? '#3a2820' : '#e6d6c8'), borderRadius: 30, padding: '9px 15px', font: "600 13px 'Hanken Grotesk'", color: on ? '#fbf6f0' : '#5c463c' }}>{name}</button>
           );
         })}
       </div>
       {extra > 0 ? (
-        <div style={{ font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginBottom: 20 }}>{extra} extra dip{extra > 1 ? 's' : ''} · +{money(extra * PEBBLE_EXTRA_DIP)}</div>
+        <div style={{ font: "600 12px 'Hanken Grotesk'", color: '#b4506d', marginBottom: 20 }}>{extra} extra dip{extra > 1 ? 's' : ''} · +{money(extra * PEBBLE_EXTRA_DIP)}</div>
       ) : (
         <div style={{ height: 10 }} />
       )}
 
       <div style={sectionLabel}>How many?</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f7ece4', borderRadius: 13, padding: '12px 16px' }}>
-        <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#49331f', flex: 1 }}>Number of orders</span>
-        <button type="button" onClick={() => incUnits(-1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
-        <span style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f', minWidth: 22, textAlign: 'center' }}>{it.units}</span>
-        <button type="button" onClick={() => incUnits(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f6dde3', borderRadius: 13, padding: '12px 16px' }}>
+        <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#3a2820', flex: 1 }}>Number of orders</span>
+        <button type="button" onClick={() => incUnits(-1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
+        <span style={{ font: "400 20px 'Fraunces'", color: '#3a2820', minWidth: 22, textAlign: 'center' }}>{it.units}</span>
+        <button type="button" onClick={() => incUnits(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
       </div>
     </>
   );
@@ -579,22 +583,22 @@ function GiftingBuilder({ item: it, setField, incDozens }) {
   const total = tier.amount * dozens;
   return (
     <>
-      <h2 style={{ font: "800 22px 'Bricolage Grotesque'", color: '#49331f', margin: '0 0 4px' }}>Branded Client Gifting</h2>
-      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#8a6f63', margin: '0 0 18px' }}>Logo-accurate cookies for client and corporate gifting — 4 dozen minimum.</p>
+      <h2 style={{ font: "400 22px 'Fraunces'", color: '#3a2820', margin: '0 0 4px' }}>Branded Client Gifting</h2>
+      <p style={{ font: "500 13px 'Hanken Grotesk'", color: '#5c463c', margin: '0 0 18px' }}>Logo-accurate cookies for client and corporate gifting — 4 dozen minimum.</p>
 
       <div style={sectionLabel}>Company name</div>
       <input value={it.company} onChange={(e) => setField({ company: e.target.value })} placeholder="Who's this order for?" style={{ ...inputStyle, marginBottom: 20 }} />
 
       <div style={sectionLabel}>How many dozen?</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f7ece4', borderRadius: 13, padding: '12px 16px', marginBottom: 8 }}>
-        <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#49331f', flex: 1 }}>Dozens (4 minimum)</span>
-        <button type="button" onClick={() => incDozens(-1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
-        <span style={{ font: "800 20px 'Bricolage Grotesque'", color: '#49331f', minWidth: 22, textAlign: 'center' }}>{dozens}</span>
-        <button type="button" onClick={() => incDozens(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#49331f', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: '#f6dde3', borderRadius: 13, padding: '12px 16px', marginBottom: 8 }}>
+        <span style={{ font: "600 13px 'Hanken Grotesk'", color: '#3a2820', flex: 1 }}>Dozens (4 minimum)</span>
+        <button type="button" onClick={() => incDozens(-1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>−</button>
+        <span style={{ font: "400 20px 'Fraunces'", color: '#3a2820', minWidth: 22, textAlign: 'center' }}>{dozens}</span>
+        <button type="button" onClick={() => incDozens(1)} style={{ width: 34, height: 34, borderRadius: '50%', border: '1.5px solid #d8c4b5', background: '#fff', color: '#3a2820', font: "700 18px 'Hanken Grotesk'", cursor: 'pointer' }}>+</button>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', font: "600 12px 'Hanken Grotesk'", color: '#a86a3e', marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', font: "600 12px 'Hanken Grotesk'", color: '#b4506d', marginBottom: 20 }}>
         <span>{money(tier.amount)}/dozen at this quantity</span>
-        <span style={{ color: '#49331f', fontWeight: 700 }}>{money(total)} total</span>
+        <span style={{ color: '#3a2820', fontWeight: 700 }}>{money(total)} total</span>
       </div>
 
       <div style={sectionLabel}>Brand colours</div>

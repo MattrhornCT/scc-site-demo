@@ -36,10 +36,13 @@ export function loadGallery() {
     });
     const imageEntries = Object.entries(p.images || {});
     const src = (p.images && p.images['800']) || (imageEntries[0] && imageEntries[0][1]) || '';
+    // Higher-res variant for large frames (hero tiles, lightbox) — falls back to 800.
+    const srcLarge = (p.images && (p.images['1600'] || p.images['800'])) || src;
 
     return {
       id: p.id,
       src,
+      srcLarge,
       occasion: (p.occasion && p.occasion[0]) || '',
       label: p.title || '',
       properties,
@@ -71,12 +74,27 @@ export function loadGallery() {
 
 // Featured photos, manually ordered by Sort Order (blank sorts last) — set
 // directly in Airtable, replacing the old "most recently committed" ranking.
-export function getRecentPhotos(n = 3) {
+export function getRecentPhotos(n = 4) {
   const { photos } = loadGallery();
-  return photos
+  const featured = photos
     .filter((p) => p.featured)
-    .slice()
-    .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity))
+    .sort((a, b) => (a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity));
+  // Pad with non-featured photos so a section never looks half-empty.
+  return featured.concat(photos.filter((p) => !p.featured)).slice(0, n);
+}
+
+// Photos whose Occasion or Theme matches any of the given keywords
+// (case-insensitive), featured/sorted first. Used to pick real gallery photos
+// for the home/corporate pages instead of hard-coded images.
+export function getPhotosMatching(keywords, n = 4) {
+  const { photos } = loadGallery();
+  const keys = keywords.map((k) => k.toLowerCase());
+  const hit = (p) => keys.some((k) =>
+    p.occasion.toLowerCase().includes(k) ||
+    Object.values(p.properties).some((vals) => vals.some((v) => v.toLowerCase().includes(k))));
+  return photos
+    .filter(hit)
+    .sort((a, b) => (b.featured - a.featured) || ((a.sortOrder ?? Infinity) - (b.sortOrder ?? Infinity)))
     .slice(0, n);
 }
 

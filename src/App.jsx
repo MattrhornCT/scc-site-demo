@@ -5,6 +5,7 @@ import Home from './pages/Home.jsx';
 import Gallery from './pages/Gallery.jsx';
 import Order from './pages/Order.jsx';
 import Corporate from './pages/Corporate.jsx';
+import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 
 export default function App() {
@@ -17,15 +18,16 @@ export default function App() {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      <Nav view={view} goHome={() => go('home')} goGallery={() => go('gallery')} goOrder={() => go('order')} goCorporate={() => go('corporate')} goContact={() => go('contact')} />
-      <div style={{ animation: 'fadeUp .55s ease both' }}>
-        {view === 'home' && <Home goOrder={() => go('order')} goGallery={() => go('gallery')} />}
-        {view === 'gallery' && <Gallery />}
+      <Nav view={view} go={go} />
+      <div className="page-fade" key={view} style={{ animation: 'fadeUp .55s ease both' }}>
+        {view === 'home' && <Home go={go} />}
+        {view === 'gallery' && <Gallery go={go} />}
         {view === 'order' && <Order />}
         {view === 'corporate' && <Corporate />}
+        {view === 'about' && <About go={go} />}
         {view === 'contact' && <Contact goOrder={() => go('order')} />}
       </div>
-      <Footer goHome={() => go('home')} goGallery={() => go('gallery')} goOrder={() => go('order')} goCorporate={() => go('corporate')} goContact={() => go('contact')} />
+      <Footer go={go} />
     </div>
   );
 }
